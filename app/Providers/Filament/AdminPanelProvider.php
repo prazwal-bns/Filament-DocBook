@@ -28,8 +28,20 @@ class AdminPanelProvider extends PanelProvider
             ->profile()
             ->path('admin')
             ->login()
+            ->font('Inter')
+            ->brandName('Filament Tutorial')
             ->colors([
+                'danger' => Color::Red,
+                'gray' => Color::Slate,
+                'info' => Color::Blue,
                 'primary' => Color::Amber,
+                'success' => Color::Emerald,
+                'warning' => Color::Orange,
+            ])
+            ->navigationGroups([
+                'Manage Appointments',
+                'Manage Users',
+                'Manage Specializations',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Appointment extends Model
 {
@@ -33,6 +34,16 @@ class Appointment extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+
+    protected static function booted()
+    {
+        static::saving(function ($appointment) {
+            if ($appointment->appointment_date) {
+                $appointment->day = Carbon::parse($appointment->appointment_date)->format('l');
+            }
+        });
     }
 
 

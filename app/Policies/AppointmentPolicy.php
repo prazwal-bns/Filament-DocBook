@@ -44,7 +44,8 @@ class AppointmentPolicy
 
     public function payment(User $user, Appointment $appointment): bool
     {
-        return $user->patient->id == $appointment->patient_id || $user->role == 'admin';
+        return true;
+        // return $user->patient->id == $appointment->patient_id || $user->role == 'admin';
     }
 
 
@@ -53,7 +54,8 @@ class AppointmentPolicy
      */
     public function delete(User $user, Appointment $appointment): bool
     {
-        return $user->patient->id == $appointment->patient_id || $user->role == 'admin';
+        return true;
+        // return $user->patient->id == $appointment->patient_id || $user->role == 'admin';
     }
 
     /**
