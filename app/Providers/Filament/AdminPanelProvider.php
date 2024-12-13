@@ -27,6 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->profile()
             ->path('admin')
+            ->registration()
             ->login()
             ->font('Inter')
             ->brandName('Filament Tutorial')

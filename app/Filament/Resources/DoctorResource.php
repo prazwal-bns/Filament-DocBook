@@ -4,9 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DoctorResource\Pages;
 use App\Filament\Resources\DoctorResource\RelationManagers;
+use App\Filament\Resources\UserResource\RelationManagers\UserRelationManager;
 use App\Models\Doctor;
+use App\Models\Specialization;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -27,13 +30,18 @@ class DoctorResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('user_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('specialization_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('status')
+                // Forms\Components\TextInput::make('user_id')
+                //     ->required()
+                //     ->numeric(),
+                Forms\Components\Select::make('specialization_id')
+                    ->label('Specialization Name')
+                    ->options(Specialization::pluck('name', 'id'))
+                    ->required(),
+                Forms\Components\Select::make('status')
+                    ->options([
+                        'available' => 'Available',
+                        'not_available' => 'Unavailable',
+                    ])  
                     ->required(),
                 Forms\Components\Textarea::make('bio')
                     ->columnSpanFull(),
@@ -44,11 +52,11 @@ class DoctorResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Doctor Name')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('specialization_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('specialization.name')
+                ->label('Specialization Name')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->searchable(),
@@ -75,10 +83,17 @@ class DoctorResource extends Resource
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+
+        ]);
+    }
+
     public static function getRelations(): array
     {
         return [
-            //
+            UserRelationManager::class
         ];
     }
 
@@ -87,7 +102,7 @@ class DoctorResource extends Resource
         return [
             'index' => Pages\ListDoctors::route('/'),
             'create' => Pages\CreateDoctor::route('/create'),
-            'view' => Pages\ViewDoctor::route('/{record}'),
+            // 'view' => Pages\ViewDoctor::route('/{record}'),
             'edit' => Pages\EditDoctor::route('/{record}/edit'),
         ];
     }

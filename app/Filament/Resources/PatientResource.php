@@ -4,9 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PatientResource\Pages;
 use App\Filament\Resources\PatientResource\RelationManagers;
+use App\Filament\Resources\UserResource\RelationManagers\UserRelationManager;
 use App\Models\Patient;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -27,10 +29,13 @@ class PatientResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('user_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('gender'),
+                Forms\Components\Select::make('gender')
+                ->options([
+                    'male' => 'Male',
+                    'female' => 'Female'
+                ])
+                ->default('male')
+                ->required(),
                 Forms\Components\DatePicker::make('dob'),
             ]);
     }
@@ -39,8 +44,8 @@ class PatientResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Patient Name')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('gender')
                     ->searchable(),
@@ -73,8 +78,15 @@ class PatientResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            UserRelationManager::class
         ];
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+
+        ]);
     }
 
     public static function getPages(): array
@@ -82,7 +94,7 @@ class PatientResource extends Resource
         return [
             'index' => Pages\ListPatients::route('/'),
             'create' => Pages\CreatePatient::route('/create'),
-            'view' => Pages\ViewPatient::route('/{record}'),
+            // 'view' => Pages\ViewPatient::route('/{record}'),
             'edit' => Pages\EditPatient::route('/{record}/edit'),
         ];
     }

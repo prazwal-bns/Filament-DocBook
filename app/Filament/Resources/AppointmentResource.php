@@ -57,8 +57,13 @@ class AppointmentResource extends Resource
                     ->searchable()
                     ->preload()
                     ->options(
-                        Doctor::with('user')
-                            ->get()->where('status','available')->pluck('user.name','id')
+                Doctor::where('status', 'available')
+                            ->whereHas('schedules', function ($query) {
+                                $query->whereNotNull('id'); // Ensure the doctor has at least one schedule
+                            })
+                            ->with('user')
+                            ->get()
+                            ->pluck('user.name', 'id')
                     )
                     ->required()
                     ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {

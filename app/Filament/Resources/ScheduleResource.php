@@ -4,7 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ScheduleResource\Pages;
 use App\Filament\Resources\ScheduleResource\RelationManagers;
+use App\Models\Doctor;
 use App\Models\Schedule;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -26,16 +28,46 @@ class ScheduleResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('doctor_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('day')
+                Forms\Components\Select::make('doctor_id')
+                    ->options(
+                        Doctor::join('users', 'doctors.user_id', '=', 'users.id') 
+                            ->pluck('users.name', 'doctors.id') 
+                    )
                     ->required(),
-                Forms\Components\TextInput::make('start_time')
+
+
+                Forms\Components\Select::make('day')
+                    ->options([
+                        "Sunday" => "Sunday", 
+                        "Monday" => "Monday", 
+                        "Tuesday" => "Tuesday", 
+                        "Wednesday" => "Wednesday", 
+                        "Thursday" => "Thursday", 
+                        "Friday" => "Friday", 
+                        "Saturday" => "Saturday"
+                    ])
                     ->required(),
-                Forms\Components\TextInput::make('end_time')
+
+                Forms\Components\TimePicker::make('start_time')
+                    ->label('Start Time')
+                    ->format('H:i')
+                    ->reactive()
+                    ->seconds(false)
                     ->required(),
-                Forms\Components\TextInput::make('status')
+
+                Forms\Components\TimePicker::make('end_time')
+                    ->label('End Time')
+                    ->format('H:i')
+                    ->reactive()
+                    ->seconds(false)
+                    ->after('start_time')
+                    ->required(),
+
+                Forms\Components\Select::make('status')
+                    ->options([
+                        'available' => 'Available',
+                        'unavailable' => 'Unavailable',
+                    ])
                     ->required(),
             ]);
     }
@@ -44,8 +76,8 @@ class ScheduleResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('doctor_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('doctor.user.name')
+                    ->label('Doctor Name')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('day')
                     ->searchable(),
@@ -68,6 +100,7 @@ class ScheduleResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
