@@ -14,6 +14,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class ScheduleResource extends Resource
 {
@@ -120,9 +121,14 @@ class ScheduleResource extends Resource
     {
         return [
             'index' => Pages\ListSchedules::route('/'),
-            'create' => Pages\CreateSchedule::route('/create'),
+            // 'create' => Pages\CreateSchedule::route('/create'),
             'view' => Pages\ViewSchedule::route('/{record}'),
             'edit' => Pages\EditSchedule::route('/{record}/edit'),
         ];
+    }
+
+    public static function canCreate(): bool
+    {
+        return false; 
     }
 }

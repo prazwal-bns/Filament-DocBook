@@ -30,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->registration()
             ->login()
             ->font('Inter')
-            ->brandName('Filament Tutorial')
+            ->brandName('DocBook')
             ->colors([
                 'danger' => Color::Red,
                 'gray' => Color::Slate,
