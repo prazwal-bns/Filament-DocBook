@@ -25,6 +25,7 @@ use Carbon\Carbon;
 use App\Models\Schedule;
 use Filament\Infolists\Infolist;
 use Filament\Tables\Filters\Filter;
+use Illuminate\Database\Eloquent\Model;
 
 class AppointmentResource extends Resource
 {
@@ -201,6 +202,9 @@ class AppointmentResource extends Resource
                 Tables\Columns\TextColumn::make('appointment_date')
                     ->date()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('payment.payment_status')
+                    ->label('Payment Status')
+                    ->sortable(),
                     // ->defaultSort('asc'),
                 Tables\Columns\TextColumn::make('start_time'),
                 Tables\Columns\TextColumn::make('end_time'),
@@ -302,5 +306,10 @@ class AppointmentResource extends Resource
             // 'view' => Pages\ViewAppointment::route('/{record}'),
             'edit' => Pages\EditAppointment::route('/{record}/edit'),
         ];
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return $record->status == 'pending';
     }
 }
