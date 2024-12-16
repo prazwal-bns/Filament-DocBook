@@ -25,6 +25,16 @@ class PatientResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'info';
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -34,7 +44,7 @@ class PatientResource extends Resource
                     'male' => 'Male',
                     'female' => 'Female'
                 ])
-                ->default('male')
+                ->native(false)
                 ->required(),
                 Forms\Components\DatePicker::make('dob'),
             ]);

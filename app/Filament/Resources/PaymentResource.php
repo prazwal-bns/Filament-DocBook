@@ -66,7 +66,7 @@ class PaymentResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('payment_method')
-                    // ->default()
+                    ->default("-")
                     ->searchable(),
                 Tables\Columns\TextColumn::make('amount')
                     ->numeric()

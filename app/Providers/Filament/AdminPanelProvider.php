@@ -2,10 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\ReviewResource;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
+use Filament\Pages\Auth\EditProfile;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -25,12 +27,13 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->profile()
+            ->profile(EditProfile::class, true)
             ->path('admin')
             ->registration()
             ->login()
             ->font('Inter')
             ->brandName('DocBook')
+            ->favicon(asset('favicon.png'))
             ->colors([
                 'danger' => Color::Red,
                 'gray' => Color::Slate,
@@ -38,6 +41,18 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
                 'success' => Color::Emerald,
                 'warning' => Color::Orange,
+                'secondary' => Color::Blue,
+                'dark' => Color::Gray,
+                'light' => Color::Yellow,
+                'purple' => Color::Purple,
+                'pink' => Color::Pink,
+                'teal' => Color::Teal,
+                'cyan' => Color::Cyan,
+                'lime' => Color::Lime,
+                'rose' => Color::Rose,
+                'indigo' => Color::Indigo,
+                'violet' => Color::Violet,
+                'fuchsia' => Color::Fuchsia
             ])
             ->navigationGroups([
                 'Manage Appointments',
@@ -69,4 +84,6 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ]);
     }
+
+
 }

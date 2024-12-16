@@ -20,6 +20,11 @@ class CreateAppointment extends CreateRecord
 {
     protected static string $resource = AppointmentResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+    
     protected function getCreatedNotification(): Notification
     {
         $record = $this->record;

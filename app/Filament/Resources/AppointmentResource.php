@@ -23,6 +23,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\DateFilter;
 use Carbon\Carbon;
 use App\Models\Schedule;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Actions;
 use Filament\Infolists\Infolist;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Model;
@@ -45,7 +47,8 @@ class AppointmentResource extends Resource
             ->schema([
                 Forms\Components\Select::make('patient_id')
                     ->label('Patient Name')
-                    ->searchable()
+                    // ->searchable()
+                    ->native(false)
                     ->preload()
                     ->options(
                         Patient::with('user')
@@ -53,9 +56,13 @@ class AppointmentResource extends Resource
                     )
                     ->required(),
 
+                Forms\Components\Hidden::make('status_only_update')
+                    ->default(false),
+
                 Forms\Components\Select::make('doctor_id')
                     ->label('Doctor Name')
-                    ->searchable()
+                    // ->searchable()
+                    ->native(false)
                     ->preload()
                     ->options(
                 Doctor::where('status', 'available')
@@ -88,7 +95,7 @@ class AppointmentResource extends Resource
                 DatePicker::make('appointment_date')
                     ->label('Appointment Date')
                     ->reactive()
-                    ->minDate(now())
+                    ->minDate(now()->toDateString())
                     ->afterStateUpdated(function (callable $set, $state) {
                         if ($state) {
                             $dayName = Carbon::parse($state)->format('l');
@@ -169,7 +176,7 @@ class AppointmentResource extends Resource
                         'completed' => 'Completed',
                     ])
                     ->label('Appointment Status')
-                    ->required()
+                    ->hidden()
                     ->default('pending'),
 
                 Forms\Components\TextInput::make('day')
@@ -186,103 +193,105 @@ class AppointmentResource extends Resource
     }
 
 
-    public static function table(Table $table): Table
-    {
+    // public static function table(Table $table): Table
+    // {
         
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('patient.user.name')
-                    ->sortable()
-                    ->searchable()
-                    ->label('Patient Name'),
-                Tables\Columns\TextColumn::make('doctor.user.name')
-                    ->label('Doctor Name')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('appointment_date')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('payment.payment_status')
-                    ->label('Payment Status')
-                    ->sortable(),
-                    // ->defaultSort('asc'),
-                Tables\Columns\TextColumn::make('start_time'),
-                Tables\Columns\TextColumn::make('end_time'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('status')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('day')
-                    ->searchable(),
-            ])
-            ->defaultSort('appointment_date')
-            ->filters([
-                Filter::make('appointment_date')
-                ->label('Appointment Date')
-                ->form([
-                    DatePicker::make('date')
-                        ->placeholder('Select Appointment Date')
-                        ->label('Select Appointment Date'),
-                ])
-                ->query(function (Builder $query, array $data) {
-                    if ($data['date']) {
-                        // Filter the records based on the selected appointment date
-                        $query->whereDate('appointment_date', Carbon::parse($data['date'])->toDateString());
-                    }
-                })
-                ->indicateUsing(function (array $data): ?string {
-                    if (! isset($data['date']) || ! $data['date']) {
-                        return null;
-                    }
+    //     return $table
+    //         ->columns([
+    //             Tables\Columns\TextColumn::make('patient.user.name')
+    //                 ->sortable()
+    //                 ->searchable()
+    //                 ->label('Patient Name'),
+    //             Tables\Columns\TextColumn::make('doctor.user.name')
+    //                 ->label('Doctor Name')
+    //                 ->searchable()
+    //                 ->sortable(),
+    //             Tables\Columns\TextColumn::make('appointment_date')
+    //                 ->date()
+    //                 ->sortable(),
+    //             // Tables\Columns\TextColumn::make('payment.payment_status')
+    //             //     ->label('Payment Status')
+    //             //     ->sortable(),
+    //                 // ->defaultSort('asc'),
+    //             Tables\Columns\TextColumn::make('start_time'),
+    //             Tables\Columns\TextColumn::make('end_time'),
+    //             Tables\Columns\TextColumn::make('created_at')
+    //                 ->dateTime()
+    //                 ->sortable()
+    //                 ->toggleable(isToggledHiddenByDefault: true),
+    //             Tables\Columns\TextColumn::make('updated_at')
+    //                 ->dateTime()
+    //                 ->sortable()
+    //                 ->toggleable(isToggledHiddenByDefault: true),
+    //             Tables\Columns\TextColumn::make('status')
+    //                 ->searchable(),
 
-                    // Display the selected date in a user-friendly format
-                    return 'Appointment on ' . Carbon::parse($data['date'])->toFormattedDateString();
-                }),
+                
+    //             Tables\Columns\TextColumn::make('day')
+    //                 ->searchable(),
+    //         ])
+    //         ->defaultSort('appointment_date')
+    //         ->filters([
+    //             Filter::make('appointment_date')
+    //             ->label('Appointment Date')
+    //             ->form([
+    //                 DatePicker::make('date')
+    //                     ->placeholder('Select Appointment Date')
+    //                     ->label('Select Appointment Date'),
+    //             ])
+    //             ->query(function (Builder $query, array $data) {
+    //                 if ($data['date']) {
+    //                     // Filter the records based on the selected appointment date
+    //                     $query->whereDate('appointment_date', Carbon::parse($data['date'])->toDateString());
+    //                 }
+    //             })
+    //             ->indicateUsing(function (array $data): ?string {
+    //                 if (! isset($data['date']) || ! $data['date']) {
+    //                     return null;
+    //                 }
 
-                SelectFilter::make('day')
-                    ->options([
-                        'Sunday' => 'Sunday',
-                        'Monday' => 'Monday',
-                        'Tuesday' => 'Tuesday',
-                        'Wednesday' => 'Wednesday',
-                        'Thursday' => 'Thursday',
-                        'Friday' => 'Friday',
-                        'Saturday' => 'Saturday',
-                    ])
-                    ->label('Day')
-                    ->placeholder('All Days'),
+    //                 // Display the selected date in a user-friendly format
+    //                 return 'Appointment on ' . Carbon::parse($data['date'])->toFormattedDateString();
+    //             }),
 
-                SelectFilter::make('doctor_id')
-                    ->options(function () {
-                        return Doctor::all()->pluck('user.name', 'id')->toArray();
-                    })
-                    ->label('Doctor')
-                    ->placeholder('Select Doctor'),
-            ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
-                    ->successNotification(function ($record) {
-                        return Notification::make()
-                            ->success()
-                            ->icon('heroicon-o-trash')
-                            ->title('Appointment Removed!')
-                            ->body("The appointment with Dr. {$record->doctor->user->name} for {$record->patient->user->name} on {$record->appointment_date} has been removed.");
-                    }),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
-    }
+    //             SelectFilter::make('day')
+    //                 ->options([
+    //                     'Sunday' => 'Sunday',
+    //                     'Monday' => 'Monday',
+    //                     'Tuesday' => 'Tuesday',
+    //                     'Wednesday' => 'Wednesday',
+    //                     'Thursday' => 'Thursday',
+    //                     'Friday' => 'Friday',
+    //                     'Saturday' => 'Saturday',
+    //                 ])
+    //                 ->label('Day')
+    //                 ->placeholder('All Days'),
+
+    //             SelectFilter::make('doctor_id')
+    //                 ->options(function () {
+    //                     return Doctor::all()->pluck('user.name', 'id')->toArray();
+    //                 })
+    //                 ->label('Doctor')
+    //                 ->placeholder('Select Doctor'),
+    //         ])
+    //         ->actions([
+    //             Tables\Actions\ViewAction::make(),
+    //             Tables\Actions\EditAction::make(),
+    //             Tables\Actions\DeleteAction::make()
+    //                 ->successNotification(function ($record) {
+    //                     return Notification::make()
+    //                         ->success()
+    //                         ->icon('heroicon-o-trash')
+    //                         ->title('Appointment Removed!')
+    //                         ->body("The appointment with Dr. {$record->doctor->user->name} for {$record->patient->user->name} on {$record->appointment_date} has been removed.");
+    //                 }),
+    //         ])
+    //         ->bulkActions([
+    //             Tables\Actions\BulkActionGroup::make([
+    //                 Tables\Actions\DeleteBulkAction::make(),
+    //             ]),
+    //         ]);
+    // }
 
     public static function infolist(Infolist $infolist): Infolist
     {

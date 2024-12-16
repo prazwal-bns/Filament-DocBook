@@ -33,6 +33,16 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return static::getModel()::count() > 10 ? 'info' : 'success';
+    }
+
     public static function form(Form $form): Form
     {
         $user = User::with('doctor.specialization')->find(request()->route('record'));
