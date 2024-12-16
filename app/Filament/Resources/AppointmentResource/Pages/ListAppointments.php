@@ -5,10 +5,12 @@ namespace App\Filament\Resources\AppointmentResource\Pages;
 
 use App\Filament\Resources\AppointmentResource;
 use App\Models\Appointment;
+use App\Models\Doctor;
 use Carbon\Carbon;
 use Filament\Actions;
 use Filament\Actions\SelectAction;
 use Filament\Forms\Components\Actions as ComponentsActions;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Resources\Components\Tab;
@@ -23,6 +25,9 @@ use Filament\Tables\Actions\BulkAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
+use Filament\Forms\Components\TimePicker;
+use Filament\Tables\Filters\DateFilter;
+use Filament\Tables\Filters\Filter;
 
 class ListAppointments extends ListRecords
 {
@@ -57,17 +62,21 @@ class ListAppointments extends ListRecords
 
 
                 BadgeColumn::make('payment.payment_status')
+                    ->label('Payment Status')
                     ->colors([
                         'success' => 'paid',
                         'danger' => 'unpaid',
                     ]),
                 
+                TextColumn::make('day')
+                        ->searchable(),
 
                 TextColumn::make('start_time')
                     ->label('Start Time'),
 
                 TextColumn::make('end_time')
                     ->label('End Time'),
+                
 
                 BadgeColumn::make('status')
                     ->label('Status')
@@ -77,6 +86,50 @@ class ListAppointments extends ListRecords
                         'success' => 'completed',
                     ])
                     ->sortable(),
+            ])
+            ->defaultSort('appointment_date')
+            ->filters([
+                Filter::make('appointment_date')
+                ->label('Appointment Date')
+                ->form([
+                    DatePicker::make('date')
+                        ->placeholder('Select Appointment Date')
+                        ->label('Select Appointment Date'),
+                ])
+                ->query(function (Builder $query, array $data) {
+                    if ($data['date']) {
+                        // Filter the records based on the selected appointment date
+                        $query->whereDate('appointment_date', Carbon::parse($data['date'])->toDateString());
+                    }
+                })
+                ->indicateUsing(function (array $data): ?string {
+                    if (! isset($data['date']) || ! $data['date']) {
+                        return null;
+                    }
+
+                    // Display the selected date in a user-friendly format
+                    return 'Appointment on ' . Carbon::parse($data['date'])->toFormattedDateString();
+                }),
+
+                SelectFilter::make('day')
+                    ->options([
+                        'Sunday' => 'Sunday',
+                        'Monday' => 'Monday',
+                        'Tuesday' => 'Tuesday',
+                        'Wednesday' => 'Wednesday',
+                        'Thursday' => 'Thursday',
+                        'Friday' => 'Friday',
+                        'Saturday' => 'Saturday',
+                    ])
+                    ->label('Day')
+                    ->placeholder('All Days'),
+
+                SelectFilter::make('doctor_id')
+                    ->options(function () {
+                        return Doctor::all()->pluck('user.name', 'id')->toArray();
+                    })
+                    ->label('Doctor')
+                    ->placeholder('Select Doctor'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

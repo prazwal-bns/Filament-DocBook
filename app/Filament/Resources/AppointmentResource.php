@@ -74,6 +74,8 @@ class AppointmentResource extends Resource
                             ->pluck('user.name', 'id')
                     )
                     ->required()
+                    // ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {
+                    //     return static function (string $attribute, $value, Closure $fail) use ($get, $component) {
                     ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {
                         return static function (string $attribute, $value, Closure $fail) use ($get, $component) {
                             $doctorId = $value;
@@ -91,7 +93,7 @@ class AppointmentResource extends Resource
                             }
                         };
                     }),
-                
+
                 DatePicker::make('appointment_date')
                     ->label('Appointment Date')
                     ->reactive()
@@ -144,6 +146,9 @@ class AppointmentResource extends Resource
                                 );
                             });
 
+                            
+                            
+
                             if ($overlappingAppointment) {
                                 $schedule = $appointments->map(function ($appointment) {
                                     return Carbon::parse($appointment->start_time)->format('H:i') . ' - ' . Carbon::parse($appointment->end_time)->format('H:i');
@@ -153,7 +158,6 @@ class AppointmentResource extends Resource
                             }
                         };
                     }),
-
                 Forms\Components\TimePicker::make('start_time')
                     ->label('Start Time')
                     ->format('H:i')

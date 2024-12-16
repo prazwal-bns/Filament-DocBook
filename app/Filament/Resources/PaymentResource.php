@@ -5,12 +5,15 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PaymentResource\Pages;
 use App\Filament\Resources\PaymentResource\RelationManagers;
 use App\Models\Payment;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms;
 use Filament\Tables\Actions\Action;
 use Filament\Forms\Form;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\ActionSize;
 use Filament\Tables;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -60,8 +63,15 @@ class PaymentResource extends Resource
                 Tables\Columns\TextColumn::make('pid')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                Tables\Columns\TextColumn::make('payment_status')
-                    ->searchable(),
+                
+                BadgeColumn::make('payment_status')
+                    ->label('Payment Status')
+                    ->searchable()
+                    ->colors([
+                        'success' => 'paid',
+                        'danger' => 'unpaid',
+                    ]),
+
                 Tables\Columns\TextColumn::make('transaction_id')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
@@ -84,6 +94,33 @@ class PaymentResource extends Resource
                 //
             ])
             ->actions([
+                ActionGroup::make([
+                    Action::make('Pay with eSewa')
+                        ->action(function ($record) {
+                            return redirect()->route('payment.esewa', ['appointmentId' => $record->appointment_id]);
+                        })
+                        ->icon('heroicon-o-currency-dollar')
+                        ->visible(fn ($record) => $record->payment_status !== 'paid')
+                        // ->button()
+                        ->color('success')
+                        ->label('Pay via eSewa')
+                        ->tooltip('Click to pay via eSewa'),
+                    
+                    Action::make('Pay via Stripe')
+                        ->url(fn ($record) => route('filament.admin.resources.payments.stripe', ['appointmentId' => $record->id]))
+                        ->icon('heroicon-o-currency-dollar')
+                        ->visible(fn ($record) => $record->payment_status !== 'paid')
+                        // ->button()
+                        ->color('secondary')
+                        ->label('Pay via Stripe')
+                        ->tooltip('Click to pay via Stripe')
+                    ])
+                ->label('Make Payment')
+                ->icon('heroicon-m-credit-card')
+                ->size(ActionSize::Small)
+                ->color('purple')
+                ->button(),
+                
                 Tables\Actions\ViewAction::make(),
                 // Tables\Actions\EditAction::make(),
                 // Action::make('Pay with eSewa')
@@ -93,26 +130,6 @@ class PaymentResource extends Resource
                 // ->icon('heroicon-o-currency-dollar')
                 // ->visible(fn($record) => $record->payment_status !== 'paid')
                 // ->color('success')
-                Action::make('Pay with eSewa')
-                    ->action(function ($record) {
-                        return redirect()->route('payment.esewa', ['appointmentId' => $record->appointment_id]);
-                    })
-                    ->icon('heroicon-o-currency-dollar')
-                    ->visible(fn ($record) => $record->payment_status !== 'paid')
-                    ->button()
-                    ->color('success')
-                    ->label('Pay via eSewa')
-                    ->tooltip('Click to pay via eSewa'),
-                
-                Action::make('Pay via Stripe')
-                    ->url(fn ($record) => route('filament.admin.resources.payments.stripe', ['appointmentId' => $record->id]))
-                    ->icon('heroicon-o-currency-dollar')
-                    ->visible(fn ($record) => $record->payment_status !== 'paid')
-                    ->button()
-                    ->color('primary')
-                    ->label('Pay via Stripe')
-                    ->tooltip('Click to pay via Stripe')
-                
 
             ])
             ->bulkActions([
@@ -143,7 +160,7 @@ class PaymentResource extends Resource
             'create' => Pages\CreatePayment::route('/create'),
             'stripe' => Pages\StripePayment::route('/stripe/{appointmentId}'), 
             // 'view' => Pages\ViewPayment::route('/{record}'),
-            'edit' => Pages\EditPayment::route('/{record}/edit'),
+            // 'edit' => Pages\EditPayment::route('/{record}/edit'),
         ];
     }
 
