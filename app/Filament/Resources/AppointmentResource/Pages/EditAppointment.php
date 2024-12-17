@@ -29,4 +29,6 @@ class EditAppointment extends EditRecord
             ->title('Appointment Updated!')
             ->body("Your appointment with Dr. {$record->doctor->user->name} for {$record->appointment_date} has been successfully updated.");
     }
+
+    
 }

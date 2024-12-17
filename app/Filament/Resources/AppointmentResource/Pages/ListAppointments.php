@@ -28,6 +28,7 @@ use Filament\Tables\Table;
 use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Filters\DateFilter;
 use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
 
 class ListAppointments extends ListRecords
 {
@@ -40,6 +41,7 @@ class ListAppointments extends ListRecords
         ];
     }
 
+
     public function table(Tables\Table $table): Tables\Table
     {
         return $table
@@ -50,6 +52,7 @@ class ListAppointments extends ListRecords
 
                 TextColumn::make('patient.user.name')
                     ->label('Patient Name')
+                    ->extraAttributes(['style' => 'color: red !important;'])
                     ->searchable(),
 
                 TextColumn::make('doctor.user.name')
@@ -133,8 +136,9 @@ class ListAppointments extends ListRecords
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->visible(fn($record) => $record->status === 'pending'),
                 Tables\Actions\DeleteAction::make()
+                    ->visible(fn($record) => $record->status === 'pending')
                     ->successNotification(function ($record) {
                         return Notification::make()
                             ->success()
@@ -148,7 +152,8 @@ class ListAppointments extends ListRecords
                         ->label('Leave a Review')
                         ->color('teal')
                         ->icon('heroicon-o-pencil-square')
-                        ->visible(fn ($record) => $record->status === 'completed' && !$record->review)
+                        ->visible(fn ($record) => ($record->status === 'completed' && !$record->review) && 
+                             (Auth::user()->role === 'admin' || Auth::user()->doctor))
                         ->url(fn ($record) => route('filament.admin.resources.reviews.create', ['appointment_id' => $record->id])),
 
                         
@@ -163,6 +168,7 @@ class ListAppointments extends ListRecords
                         ->label('Update Status')
                         ->color('primary')
                         ->icon('heroicon-o-pencil')
+                        ->visible(fn ($record) => Auth::user()->role === 'admin' || Auth::user()->doctor)
                         ->form([
                             Select::make('status')
                                 ->label('Select Status')
@@ -187,9 +193,9 @@ class ListAppointments extends ListRecords
                         }),
                 ])
                     ->label('More actions')
-                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->icon('heroicon-m-information-circle')
                     ->size(ActionSize::Small)
-                    ->color('secondary')
+                    ->color('purple')
                     ->button(),
                 
     
@@ -197,73 +203,137 @@ class ListAppointments extends ListRecords
             ->bulkActions([
     
                 // Bulk Action for updating the status of selected records
-                BulkAction::make('updateStatusBulk')
-                    ->label('Update Status for Selected')
-                    ->form([
-                        Select::make('status')
-                            ->label('Select Status')
-                            ->options([
-                                'pending' => 'Pending',
-                                'confirmed' => 'Confirmed',
-                                'completed' => 'Completed',
-                            ])
-                            ->required(),
-                    ])
-                    ->action(function ($records, $data) {
-                        // Update the status for selected records
-                        foreach ($records as $record) {
-                            $record->update([
-                                'status' => $data['status'],
-                            ]);
-                        }
+                // BulkAction::make('updateStatusBulk')
+                //     ->label('Update Status for Selected')
+                //     ->form([
+                //         Select::make('status')
+                //             ->label('Select Status')
+                //             ->options([
+                //                 'pending' => 'Pending',
+                //                 'confirmed' => 'Confirmed',
+                //                 'completed' => 'Completed',
+                //             ])
+                //             ->required(),
+                //     ])
+                //     ->action(function ($records, $data) {
+                //         // Update the status for selected records
+                //         foreach ($records as $record) {
+                //             $record->update([
+                //                 'status' => $data['status'],
+                //             ]);
+                //         }
     
-                        Notification::make()
-                            ->title('Status Updated')
-                            ->success()
-                            ->send();
-                    }),
+                //         Notification::make()
+                //             ->title('Status Updated')
+                //             ->success()
+                //             ->send();
+                //     }),
     
             ]);
     }
 
-
-  
     public function getTabs(): array
     {
-        $today = Carbon::today();
-    
+        $user = Auth::user();
+
         return [
-            'All' => Tab::make(),
-            'Today' => Tab::make()
+            'All' => Tab::make()
+            ->icon('heroicon-o-ellipsis-horizontal-circle'),
+            
+            'Pending' => Tab::make()
+                ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(fn (Builder $query) =>
-                    $query->whereDate('appointment_date', '=', $today)
+                    $query->where('status', 'pending') // Filter by 'pending' status
                 )
                 ->badge(
-                    Appointment::whereDate('appointment_date', '=', $today)->count()
+                    // Filter by status and also by the user’s role
+                    Appointment::where('status', 'pending')
+                        ->when($user->role === 'patient', function ($query) use ($user) {
+                            $query->where('patient_id', $user->patient->id);
+                        })
+                        ->when($user->role === 'doctor', function ($query) use ($user) {
+                            $query->where('doctor_id', $user->doctor->id);
+                        })
+                        ->count() // Count pending appointments for the logged-in user
                 ),
-            'This Week' => Tab::make()
+            
+            'Confirmed' => Tab::make()
+                ->icon('heroicon-o-check-badge')
                 ->modifyQueryUsing(fn (Builder $query) =>
-                    $query->whereDate('appointment_date', '>=', $today->startOfWeek())
+                    $query->where('status', 'confirmed') // Filter by 'confirmed' status
                 )
                 ->badge(
-                    Appointment::whereDate('appointment_date', '>=', $today->startOfWeek())->count()
+                    // Filter by status and also by the user’s role
+                    Appointment::where('status', 'confirmed')
+                        ->when($user->role === 'patient', function ($query) use ($user) {
+                            $query->where('patient_id', $user->patient->id);
+                        })
+                        ->when($user->role === 'doctor', function ($query) use ($user) {
+                            $query->where('doctor_id', $user->doctor->id);
+                        })
+                        ->count() // Count confirmed appointments for the logged-in user
                 ),
-            'This Month' => Tab::make()
+            
+            'Completed' => Tab::make()
                 ->modifyQueryUsing(fn (Builder $query) =>
-                    $query->whereDate('appointment_date', '>=', $today->startOfMonth())
-                )
+                    $query->where('status', 'completed') // Filter by 'completed' status
+                ) 
+                ->icon('heroicon-o-shield-check')
                 ->badge(
-                    Appointment::whereDate('appointment_date', '>=', $today->startOfMonth())->count()
-                ),
-            'This Year' => Tab::make()
-                ->modifyQueryUsing(fn (Builder $query) =>
-                    $query->whereDate('appointment_date', '>=', $today->startOfYear())
+                    // Filter by status and also by the user’s role
+                    Appointment::where('status', 'completed')
+                        ->when($user->role === 'patient', function ($query) use ($user) {
+                            $query->where('patient_id', $user->patient->id);
+                        })
+                        ->when($user->role === 'doctor', function ($query) use ($user) {
+                            $query->where('doctor_id', $user->doctor->id);
+                        })
+                        ->count() // Count completed appointments for the logged-in user
                 )
-                ->badge(
-                    Appointment::whereDate('appointment_date', '>=', $today->startOfYear())->count()
-                ),
+                ->extraAttributes(['class' => 'flex justify-end']),
         ];
     }
+
+
+
+
+  
+    // public function getTabs(): array
+    // {
+    //     $today = Carbon::today();
+    
+    //     return [
+    //         'All' => Tab::make(),
+    //         'Today' => Tab::make()
+    //             ->modifyQueryUsing(fn (Builder $query) =>
+    //                 $query->whereDate('appointment_date', '=', $today)
+    //             )
+    //             ->badge(
+    //                 Appointment::whereDate('appointment_date', '=', $today)->count()
+    //             ),
+    //         'This Week' => Tab::make()
+    //             ->modifyQueryUsing(fn (Builder $query) =>
+    //                 $query->whereDate('appointment_date', '>=', $today->startOfWeek())
+    //             )
+    //             ->badge(
+    //                 Appointment::whereDate('appointment_date', '>=', $today->startOfWeek())->count()
+    //             ),
+    //         'This Month' => Tab::make()
+    //             ->modifyQueryUsing(fn (Builder $query) =>
+    //                 $query->whereDate('appointment_date', '>=', $today->startOfMonth())
+    //             )
+    //             ->badge(
+    //                 Appointment::whereDate('appointment_date', '>=', $today->startOfMonth())->count()
+    //             ),
+    //         'This Year' => Tab::make()
+    //             ->modifyQueryUsing(fn (Builder $query) =>
+    //                 $query->whereDate('appointment_date', '>=', $today->startOfYear())
+    //             )
+    //             ->badge(
+    //                 Appointment::whereDate('appointment_date', '>=', $today->startOfYear())->count()
+    //             ),
+    //     ];
+    // }
     
 
 

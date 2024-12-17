@@ -16,7 +16,9 @@ use Filament\Tables;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentResource extends Resource
 {
@@ -28,6 +30,57 @@ class PaymentResource extends Resource
 
 
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationBadge(): ?string
+    {
+        $user = Auth::user();
+    
+        if ($user->role === 'patient') {
+            return static::getModel()::whereHas('appointment', function ($query) use ($user) {
+                $query->where('patient_id', $user->patient->id);
+            })->count();
+        } elseif ($user->role === 'doctor') {
+            return static::getModel()::whereHas('appointment', function ($query) use ($user) {
+                $query->where('doctor_id', $user->doctor->id);
+            })->count();
+        }
+    
+        return static::getModel()::count();
+    }
+    
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'info' ;
+    }
+
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            return $query; // Admins can see all appointments
+        }
+
+        if ($user->role === 'patient') {
+            return $query->whereHas('appointment', function ($query) use ($user) {
+                $query->where('patient_id', $user->patient->id);
+            });
+        }
+    
+        // For doctors, filter payments based on their associated appointments
+        if ($user->role === 'doctor') {
+            return $query->whereHas('appointment', function ($query) use ($user) {
+                $query->where('doctor_id', $user->doctor->id);
+            });
+        }
+    
+        return $query->where('id', null);
+    }
+
 
     public static function form(Form $form): Form
     {
@@ -67,6 +120,11 @@ class PaymentResource extends Resource
                 BadgeColumn::make('payment_status')
                     ->label('Payment Status')
                     ->searchable()
+                    ->icon(function ($record) {
+                        return $record->payment_status === 'paid'
+                            ? 'heroicon-o-credit-card' 
+                            : 'heroicon-o-exclamation-circle'; 
+                    })
                     ->colors([
                         'success' => 'paid',
                         'danger' => 'unpaid',
@@ -119,6 +177,7 @@ class PaymentResource extends Resource
                 ->icon('heroicon-m-credit-card')
                 ->size(ActionSize::Small)
                 ->color('purple')
+                ->visible(fn($record) => (Auth::user()->role === 'admin' || Auth::user()->role ==='patient'))
                 ->button(),
                 
                 Tables\Actions\ViewAction::make(),
@@ -134,7 +193,7 @@ class PaymentResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -168,4 +227,11 @@ class PaymentResource extends Resource
     {
         return false;
     }
+
+
+    public static function canEdit(Model $record): bool
+    {
+        return false; // Disables the edit functionality
+    }
+
 }

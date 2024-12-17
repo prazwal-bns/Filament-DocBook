@@ -13,8 +13,10 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class ReviewResource extends Resource
@@ -23,21 +25,69 @@ class ReviewResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-magnifying-glass';
 
-    protected static ?string $navigationLabel = 'Manage Reviews';
+    protected static ?string $navigationLabel = 'Reviews';
     protected static ?string $navigationGroup = 'Manage Appointments';
-
-
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationBadge(): ?string
+    {
+        $user = Auth::user();
+    
+        if ($user->role === 'patient') {
+            return static::getModel()::whereHas('appointment', function ($query) use ($user) {
+                $query->where('patient_id', $user->patient->id);
+            })->count();
+        } elseif ($user->role === 'doctor') {
+            return static::getModel()::whereHas('appointment', function ($query) use ($user) {
+                $query->where('doctor_id', $user->doctor->id);
+            })->count();
+        }
+    
+        return static::getModel()::count();
+    }
+    
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'lime' ;
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+
+                Forms\Components\Hidden::make('appointment_id')
+                    ->default(fn () => request()->query('appointment_id')) // Set default from query string
+                    ->required(),
+
+                // Forms\Components\Select::make('appointment_id')
+                //     ->label('Select Completed Appointment')
+                //     ->options(
+                //         Appointment::query()
+                //             ->where('status', 'completed')
+                //             ->with(['patient', 'doctor'])
+                //             ->get()
+                //             ->mapWithKeys(function ($appointment) {
+                //                 return [
+                //                     $appointment->id => "{$appointment->patient->user->name} with Dr. {$appointment->doctor->user->name} on {$appointment->appointment_date}",
+                //                 ];
+                //             })
+                //     )
+                //     ->searchable()
+                //     ->placeholder('Select a completed appointment')
+                //     ->visible(fn () => !request()->query('appointment_id')) // Only show if no `appointment_id` in the query string
+                //     ->required(fn () => !request()->query('appointment_id')),
+
                 Forms\Components\Select::make('appointment_id')
                     ->label('Select Completed Appointment')
                     ->options(
                         Appointment::query()
                             ->where('status', 'completed')
+                            ->when(Auth::user()->role === 'doctor', function ($query) {
+                                // Filter appointments for the logged-in doctor
+                                $query->where('doctor_id', Auth::user()->doctor->id);
+                            })
                             ->with(['patient', 'doctor'])
                             ->get()
                             ->mapWithKeys(function ($appointment) {
@@ -47,13 +97,10 @@ class ReviewResource extends Resource
                             })
                     )
                     ->searchable()
-                    ->required()
                     ->placeholder('Select a completed appointment')
-                    ->visible(fn () => !request()->query('appointment_id')),
+                    ->visible(fn () => !request()->query('appointment_id')) 
+                    ->required(fn () => !request()->query('appointment_id')),
 
-                Forms\Components\Hidden::make('appointment_id')
-                    ->default(fn () => request()->query('appointment_id'))
-                    ->visible(fn () => request()->query('appointment_id')),
 
                 Forms\Components\Textarea::make('review_msg')
                     ->label('Review Message')
@@ -82,6 +129,7 @@ class ReviewResource extends Resource
                 //     ->label('Appointment ID')
                 //     ->numeric()
                 //     ->sortable(),
+
                 Tables\Columns\TextColumn::make('appointment_id')
                     ->label('Appointment Details')
                     ->getStateUsing(fn ($record) => 
@@ -90,15 +138,29 @@ class ReviewResource extends Resource
                         $record->appointment->doctor->user->name . ' on ' . 
                         $record->appointment->appointment_date)
                     ->sortable(),
+
+                
+                
+                Tables\Columns\TextColumn::make('appointment.doctor.user.name')
+                    ->label('Doctor Name'),
+
+                Tables\Columns\TextColumn::make('appointment.patient.user.name')
+                    ->label('Patient Name'),
+
+                Tables\Columns\TextColumn::make('appointment.appointment_date')
+                    ->label('Appointment Date'),
+
                 Tables\Columns\TextColumn::make('review_msg')
                     ->label('Review Message'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created At')
                     ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Updated At')
                     ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
             ])
             ->filters([
@@ -110,7 +172,7 @@ class ReviewResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -132,5 +194,34 @@ class ReviewResource extends Resource
         ];
     }
 
-  
+    public static function canCreate(): bool
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        if ($user->role === 'doctor') {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        if ($user->role === 'doctor' && $record->appointment->doctor_id === $user->doctor->id) {
+            return true;
+        }
+
+        return false;
+    }
+
 }

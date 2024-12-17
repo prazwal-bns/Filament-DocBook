@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SpecializationResource\Pages;
 use App\Filament\Resources\SpecializationResource\RelationManagers;
+use App\Filament\Resources\SpecializationResource\RelationManagers\DoctorsRelationManager;
 use App\Models\Specialization;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -37,6 +38,7 @@ class SpecializationResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->unique(Specialization::class, 'name')
                     ->required(),
             ]);
     }
@@ -47,6 +49,10 @@ class SpecializationResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('doctors.user.name')
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -65,16 +71,16 @@ class SpecializationResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            DoctorsRelationManager::make()
         ];
     }
 

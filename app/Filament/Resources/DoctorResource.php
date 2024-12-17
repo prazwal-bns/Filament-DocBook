@@ -116,4 +116,8 @@ class DoctorResource extends Resource
             'edit' => Pages\EditDoctor::route('/{record}/edit'),
         ];
     }
+
+    public static function canCreate(): bool{
+        return false;
+    }
 }

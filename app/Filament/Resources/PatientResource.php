@@ -108,4 +108,8 @@ class PatientResource extends Resource
             'edit' => Pages\EditPatient::route('/{record}/edit'),
         ];
     }
+
+    public static function canCreate(): bool{
+        return false;
+    }
 }

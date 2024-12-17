@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class CreateAppointment extends CreateRecord
 {
@@ -51,4 +52,18 @@ class CreateAppointment extends CreateRecord
 
         return $record;
     }
+
+    public function mutateFormDataBeforeCreate(array $data): array
+    {
+        if (Auth::user()->role === 'patient') {
+            $data['patient_id'] = Auth::user()->patient->id;
+        }
+
+        if (Auth::user()->role === 'doctor') {
+            $data['doctor_id'] = Auth::user()->doctor->id;
+        }
+
+        return $data;
+    }
+
 }

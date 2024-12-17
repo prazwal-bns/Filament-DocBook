@@ -28,6 +28,7 @@ use Filament\Forms\Components\Actions;
 use Filament\Infolists\Infolist;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class AppointmentResource extends Resource
 {
@@ -39,10 +40,51 @@ class AppointmentResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function getNavigationBadge(): ?string
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'patient') {
+            return static::getModel()::where('patient_id', $user->patient->id)->count();
+        } elseif ($user->role === 'doctor') {
+            return static::getModel()::where('doctor_id', $user->doctor->id)->count();
+        }
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return static::getModel()::count() > 10 ? 'info' : 'success';
+    }
+
+
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            return $query; // Admins can see all appointments
+        }
+
+        if ($user->role === 'patient') {
+            return $query->where('patient_id', Auth::user()->patient->id);
+        }
+
+        if ($user->role === 'doctor') {
+            return $query->where('doctor_id', Auth::user()->doctor->id);
+        }
+
+        return $query->where('id', null); // If not admin, patient, or doctor, show no results
+    }
+
+
+
 
     public static function form(Form $form): Form
     {
-      
         return $form
             ->schema([
                 Forms\Components\Select::make('patient_id')
@@ -54,7 +96,8 @@ class AppointmentResource extends Resource
                         Patient::with('user')
                             ->get()->pluck('user.name','id')
                     )
-                    ->required(),
+                    ->hidden(fn () => Auth::user()->role === 'patient')
+                    ->required(fn () => Auth::user()->role !== 'patient'),
 
                 Forms\Components\Hidden::make('status_only_update')
                     ->default(false),
@@ -64,6 +107,7 @@ class AppointmentResource extends Resource
                     // ->searchable()
                     ->native(false)
                     ->preload()
+                    ->hidden(fn () => Auth::user()->role === 'doctor')
                     ->options(
                 Doctor::where('status', 'available')
                             ->whereHas('schedules', function ($query) {
@@ -158,6 +202,8 @@ class AppointmentResource extends Resource
                             }
                         };
                     }),
+
+
                 Forms\Components\TimePicker::make('start_time')
                     ->label('Start Time')
                     ->format('H:i')
@@ -195,6 +241,7 @@ class AppointmentResource extends Resource
             ]);
         
     }
+
 
 
     // public static function table(Table $table): Table
