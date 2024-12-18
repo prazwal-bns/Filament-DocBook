@@ -19,14 +19,16 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Get;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\DateFilter;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TextArea;
+use App\Rules\AppointmentValidationRule;
 use Carbon\Carbon;
 use App\Models\Schedule;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Select as ComponentsSelect;
 use Filament\Infolists\Infolist;
-use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
@@ -87,7 +89,8 @@ class AppointmentResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('patient_id')
+                // Forms\Components\Select::make('patient_id')
+                Select::make('patient_id')
                     ->label('Patient Name')
                     // ->searchable()
                     ->native(false)
@@ -102,12 +105,12 @@ class AppointmentResource extends Resource
                 Forms\Components\Hidden::make('status_only_update')
                     ->default(false),
 
-                Forms\Components\Select::make('doctor_id')
+                Select::make('doctor_id')
                     ->label('Doctor Name')
-                    // ->searchable()
                     ->native(false)
                     ->preload()
-                    ->hidden(fn () => Auth::user()->role === 'doctor')
+                    ->hidden(fn () => Auth::user()->role === 'doctor') 
+                    ->disabled(fn ($livewire) => Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
                     ->options(
                 Doctor::where('status', 'available')
                             ->whereHas('schedules', function ($query) {
@@ -118,8 +121,6 @@ class AppointmentResource extends Resource
                             ->pluck('user.name', 'id')
                     )
                     ->required()
-                    // ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {
-                    //     return static function (string $attribute, $value, Closure $fail) use ($get, $component) {
                     ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {
                         return static function (string $attribute, $value, Closure $fail) use ($get, $component) {
                             $doctorId = $value;
@@ -138,6 +139,8 @@ class AppointmentResource extends Resource
                         };
                     }),
 
+
+
                 DatePicker::make('appointment_date')
                     ->label('Appointment Date')
                     ->reactive()
@@ -149,69 +152,25 @@ class AppointmentResource extends Resource
                         }
                     })
                     ->required()
-                    ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {
-                        return static function (string $attribute, $value, Closure $fail) use ($get, $component) {
-                            // Ensure the date is available in the form before validating
-                            $appointmentDate = $value;
-                            $startTime = $get('start_time');
-                            $endTime = $get('end_time');
-                            $doctorId = $get('doctor_id');
-                            $day = $get('day'); // Get the day based on the selected date
-
-                            // Fetch the doctor's schedule for the selected day
-                            $schedule = Schedule::where('doctor_id', $doctorId)
-                                ->where('day', $day)
-                                ->where('status', 'available')
-                                ->first();
-
-                            if (!$schedule) {
-                                $fail("The selected doctor is not available on this day.");
-                                return;
-                            }
-
-                            // Check if the appointment start and end time are within the doctor's schedule
-                            if (
-                                Carbon::parse($startTime)->lt($schedule->start_time) ||
-                                Carbon::parse($endTime)->gt($schedule->end_time)
-                            ) {
-                                $fail("The appointment must be scheduled between the doctor's available hours of {$schedule->start_time} - {$schedule->end_time}.");
-                            }
-
-                            // Check for overlapping appointments
-                            $appointments = Appointment::where('doctor_id', $doctorId)
-                                ->where('appointment_date', $appointmentDate)
-                                ->get();
-
-                            $overlappingAppointment = $appointments->contains(function ($appointment) use ($startTime, $endTime) {
-                                return (
-                                    (Carbon::parse($startTime)->between($appointment->start_time, $appointment->end_time)) ||
-                                    (Carbon::parse($endTime)->between($appointment->start_time, $appointment->end_time)) ||
-                                    (Carbon::parse($startTime)->lte($appointment->start_time) && Carbon::parse($endTime)->gte($appointment->end_time))
-                                );
-                            });
-
-                            
-                            
-
-                            if ($overlappingAppointment) {
-                                $schedule = $appointments->map(function ($appointment) {
-                                    return Carbon::parse($appointment->start_time)->format('H:i') . ' - ' . Carbon::parse($appointment->end_time)->format('H:i');
-                                })->implode(', ');
-
-                                $fail("The selected doctor is already booked for this time slot. He's not available during: {$schedule}");
-                            }
-                        };
+                    ->rule(static function (Forms\Get $get) {
+                        $formState = [
+                            'start_time' => $get('start_time'),
+                            'end_time' => $get('end_time'),
+                            'doctor_id' => $get('doctor_id'),
+                            'day' => $get('day'),
+                        ];
+                        return new AppointmentValidationRule($formState);
                     }),
+                   
 
-
-                Forms\Components\TimePicker::make('start_time')
+                TimePicker::make('start_time')
                     ->label('Start Time')
                     ->format('H:i')
                     ->reactive()
                     ->seconds(false)
                     ->required(),
 
-                Forms\Components\TimePicker::make('end_time')
+                TimePicker::make('end_time')
                     ->label('End Time')
                     ->format('H:i')
                     ->reactive()
@@ -219,7 +178,7 @@ class AppointmentResource extends Resource
                     ->after('start_time')
                     ->required(),
                 
-                Forms\Components\Select::make('status')
+                Select::make('status')
                     ->options([
                         'pending' => 'Pending',
                         'confirmed' => 'Confirmed',
@@ -229,11 +188,11 @@ class AppointmentResource extends Resource
                     ->hidden()
                     ->default('pending'),
 
-                Forms\Components\TextInput::make('day')
-                ->hidden()
-                ->required(),
+                TextInput::make('day')
+                    ->hidden()
+                    ->required(),
 
-                Forms\Components\Textarea::make('appointment_reason')
+                Textarea::make('appointment_reason')
                     ->rows(10)
                     ->cols(20)
                     ->columnSpanFull(),
@@ -344,6 +303,7 @@ class AppointmentResource extends Resource
     //         ]);
     // }
 
+    
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([

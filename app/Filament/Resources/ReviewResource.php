@@ -9,6 +9,7 @@ use App\Models\Review;
 use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -46,6 +47,32 @@ class ReviewResource extends Resource
         return static::getModel()::count();
     }
     
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            return $query; 
+        }
+
+        if ($user->role === 'patient') {
+            return $query->whereHas('appointment', function ($appointmentQuery) use ($user) {
+                $appointmentQuery->where('patient_id', $user->patient->id);
+            });
+        }
+
+        if ($user->role === 'doctor') {
+            return $query->whereHas('appointment', function ($appointmentQuery) use ($user) {
+                $appointmentQuery->where('doctor_id', $user->doctor->id);
+            });
+        }
+
+        return $query->where('id', null);
+    }
+
+
 
     public static function getNavigationBadgeColor(): string|array|null
     {
@@ -58,7 +85,11 @@ class ReviewResource extends Resource
             ->schema([
 
                 Forms\Components\Hidden::make('appointment_id')
-                    ->default(fn () => request()->query('appointment_id')) // Set default from query string
+                    ->default(fn () => request()->query('appointment_id'))
+                    ->disabled(fn ($livewire) => 
+                        (Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord) || 
+                        in_array(Auth::user()->role, ['doctor', 'admin'])
+                    )
                     ->required(),
 
                 // Forms\Components\Select::make('appointment_id')
@@ -85,26 +116,29 @@ class ReviewResource extends Resource
                         Appointment::query()
                             ->where('status', 'completed')
                             ->when(Auth::user()->role === 'doctor', function ($query) {
-                                // Filter appointments for the logged-in doctor
                                 $query->where('doctor_id', Auth::user()->doctor->id);
                             })
                             ->with(['patient', 'doctor'])
                             ->get()
                             ->mapWithKeys(function ($appointment) {
                                 return [
-                                    $appointment->id => "{$appointment->patient->user->name} with Dr. {$appointment->doctor->user->name} on {$appointment->appointment_date}",
+                                    $appointment->id => "{$appointment->patient->user->name} with {$appointment->doctor->user->name} on {$appointment->appointment_date}",
                                 ];
                             })
                     )
                     ->searchable()
                     ->placeholder('Select a completed appointment')
-                    ->visible(fn () => !request()->query('appointment_id')) 
+                    ->visible(fn () => !request()->query('appointment_id'))
+                    ->disabled(fn ($livewire) => 
+                        ($livewire instanceof \Filament\Resources\Pages\EditRecord && in_array(Auth::user()->role, ['doctor', 'admin'])) ||
+                        (Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
+                    )
                     ->required(fn () => !request()->query('appointment_id')),
 
 
                 Forms\Components\Textarea::make('review_msg')
                     ->label('Review Message')
-                    ->required() 
+                    ->required()
                     ->columnSpanFull(),
                 
             ]);
@@ -125,15 +159,11 @@ class ReviewResource extends Resource
     {
         return $table
             ->columns([
-                // Tables\Columns\TextColumn::make('appointment_id')
-                //     ->label('Appointment ID')
-                //     ->numeric()
-                //     ->sortable(),
 
                 Tables\Columns\TextColumn::make('appointment_id')
                     ->label('Appointment Details')
                     ->getStateUsing(fn ($record) => 
-                        $record->appointment_id . ' - ' . 
+                        // $record->appointment_id . ' - ' . 
                         $record->appointment->patient->user->name . ' with ' . 
                         $record->appointment->doctor->user->name . ' on ' . 
                         $record->appointment->appointment_date)
@@ -189,7 +219,7 @@ class ReviewResource extends Resource
         return [
             'index' => Pages\ListReviews::route('/'),
             'create' => Pages\CreateReview::route('/create'),
-            'view' => Pages\ViewReview::route('/{record}'),
+            // 'view' => Pages\ViewReview::route('/{record}'),
             'edit' => Pages\EditReview::route('/{record}/edit'),
         ];
     }
@@ -207,6 +237,13 @@ class ReviewResource extends Resource
         }
 
         return false;
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+
+        ]);
     }
 
     public static function canEdit(Model $record): bool

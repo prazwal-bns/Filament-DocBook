@@ -27,7 +27,8 @@ class ListPayments extends ListRecords
 
         return [
             'All' => Tab::make()
-                ->icon('heroicon-o-ellipsis-horizontal-circle'),
+                ->icon('heroicon-o-ellipsis-horizontal-circle')
+                ->extraAttributes(['class' => 'text-secondary']),
 
             'Paid' => Tab::make()
                 ->icon('heroicon-o-credit-card')

@@ -19,6 +19,8 @@ class EditAppointment extends EditRecord
         ];
     }
 
+    
+
     protected function getSavedNotification(): Notification
     {
         $record = $this->record;

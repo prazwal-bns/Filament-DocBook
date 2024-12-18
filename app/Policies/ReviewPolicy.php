@@ -8,6 +8,23 @@ use Illuminate\Auth\Access\Response;
 
 class ReviewPolicy
 {
+    private function isAdmin(User $user): bool
+    {
+        return $user->role === 'admin';
+    }
+
+
+    private function isPatient(User $user, Review $review= null): bool
+    {
+        return $user->role === 'patient';
+    }
+
+    private function isDoctor(User $user, Review $review= null): bool
+    {
+        return $user->role === 'doctor';
+    }
+
+
     /**
      * Determine whether the user can view any models.
      */
@@ -21,7 +38,9 @@ class ReviewPolicy
      */
     public function view(User $user, Review $review): bool
     {
-        return false;
+        return $this->isAdmin($user)
+            || $this->isPatient($user, $review)
+            || $this->isDoctor($user, $review);
     }
 
     /**
@@ -29,15 +48,15 @@ class ReviewPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $this->isAdmin($user) || $this->isDoctor($user);
     }
 
-    /**
+    /**= null
      * Determine whether the user can update the model.
      */
     public function update(User $user, Review $review): bool
     {
-        return false;
+        return $this->isAdmin($user) || $this->isDoctor($user);
     }
 
     /**

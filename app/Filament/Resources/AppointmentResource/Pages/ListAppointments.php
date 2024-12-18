@@ -169,6 +169,7 @@ class ListAppointments extends ListRecords
                         ->color('primary')
                         ->icon('heroicon-o-pencil')
                         ->visible(fn ($record) => Auth::user()->role === 'admin' || Auth::user()->doctor)
+                        ->hidden(fn($record) => $record->status === 'completed')
                         ->form([
                             Select::make('status')
                                 ->label('Select Status')
