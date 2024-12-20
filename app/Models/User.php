@@ -5,12 +5,12 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasAvatar
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +25,24 @@ class User extends Authenticatable
         'address',
         'phone'
     ];
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        if ($this->avatar_url) {
+            return $this->avatar_url;
+        }
+    
+        $roleAvatars = [
+            'admin' => 'https://cdn-icons-png.freepik.com/512/3281/3281355.png',
+            'patient' => 'https://cdn-icons-png.freepik.com/512/3135/3135768.png',
+            'doctor' => 'https://cdn-icons-png.freepik.com/512/921/921059.png',
+        ];
+    
+        return $roleAvatars[$this->role] ?? 'https://source.boringavatars.com/beam/120/' . urlencode($this->name);
+    }
+    
+
+    
 
     /**
      * The attributes that should be hidden for serialization.

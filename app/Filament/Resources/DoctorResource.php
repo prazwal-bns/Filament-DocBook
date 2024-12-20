@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DoctorResource extends Resource
@@ -88,7 +89,7 @@ class DoctorResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -118,6 +119,11 @@ class DoctorResource extends Resource
     }
 
     public static function canCreate(): bool{
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
         return false;
     }
 }
