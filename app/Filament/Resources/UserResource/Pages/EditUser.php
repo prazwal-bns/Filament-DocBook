@@ -83,6 +83,6 @@ class EditUser extends EditRecord
 
         return $record;
     }
-    
+
 
 }

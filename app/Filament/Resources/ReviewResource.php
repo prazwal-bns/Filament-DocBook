@@ -27,13 +27,13 @@ class ReviewResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-document-magnifying-glass';
 
     protected static ?string $navigationLabel = 'Reviews';
+    protected static ?int $navigationSort = 3;
     protected static ?string $navigationGroup = 'Manage Appointments';
-    protected static ?int $navigationSort = 1;
 
     public static function getNavigationBadge(): ?string
     {
         $user = Auth::user();
-    
+
         if ($user->role === 'patient') {
             return static::getModel()::whereHas('appointment', function ($query) use ($user) {
                 $query->where('patient_id', $user->patient->id);
@@ -43,10 +43,10 @@ class ReviewResource extends Resource
                 $query->where('doctor_id', $user->doctor->id);
             })->count();
         }
-    
+
         return static::getModel()::count();
     }
-    
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
@@ -54,7 +54,7 @@ class ReviewResource extends Resource
         $user = Auth::user();
 
         if ($user->role === 'admin') {
-            return $query; 
+            return $query;
         }
 
         if ($user->role === 'patient') {
@@ -76,7 +76,7 @@ class ReviewResource extends Resource
 
     public static function getNavigationBadgeColor(): string|array|null
     {
-        return 'lime' ;
+        return 'lime';
     }
 
     public static function form(Form $form): Form
@@ -86,8 +86,8 @@ class ReviewResource extends Resource
 
                 Forms\Components\Hidden::make('appointment_id')
                     ->default(fn () => request()->query('appointment_id'))
-                    ->disabled(fn ($livewire) => 
-                        (Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord) || 
+                    ->disabled(fn ($livewire) =>
+                        (Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord) ||
                         in_array(Auth::user()->role, ['doctor', 'admin'])
                     )
                     ->required(),
@@ -129,7 +129,7 @@ class ReviewResource extends Resource
                     ->searchable()
                     ->placeholder('Select a completed appointment')
                     ->visible(fn () => !request()->query('appointment_id'))
-                    ->disabled(fn ($livewire) => 
+                    ->disabled(fn ($livewire) =>
                         ($livewire instanceof \Filament\Resources\Pages\EditRecord && in_array(Auth::user()->role, ['doctor', 'admin'])) ||
                         (Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
                     )
@@ -140,7 +140,7 @@ class ReviewResource extends Resource
                     ->label('Review Message')
                     ->required()
                     ->columnSpanFull(),
-                
+
             ]);
     }
 
@@ -162,15 +162,15 @@ class ReviewResource extends Resource
 
                 Tables\Columns\TextColumn::make('appointment_id')
                     ->label('Appointment Details')
-                    ->getStateUsing(fn ($record) => 
-                        // $record->appointment_id . ' - ' . 
-                        $record->appointment->patient->user->name . ' with ' . 
-                        $record->appointment->doctor->user->name . ' on ' . 
+                    ->getStateUsing(fn ($record) =>
+                        // $record->appointment_id . ' - ' .
+                        $record->appointment->patient->user->name . ' with ' .
+                        $record->appointment->doctor->user->name . ' on ' .
                         $record->appointment->appointment_date)
                     ->sortable(),
 
-                
-                
+
+
                 Tables\Columns\TextColumn::make('appointment.doctor.user.name')
                     ->label('Doctor Name'),
 

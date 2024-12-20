@@ -4,17 +4,21 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ScheduleResource\Pages;
 use App\Filament\Resources\ScheduleResource\RelationManagers;
+use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Schedule;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Closure;
+
 
 class ScheduleResource extends Resource
 {
@@ -22,8 +26,41 @@ class ScheduleResource extends Resource
 
     protected static ?string $navigationGroup = 'Mangage Doctor Schedules';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 8;
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
+
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            return $query;
+        }
+
+        if ($user->role === 'doctor') {
+            return $query->where('doctor_id', Auth::user()->doctor->id);
+        }
+
+        return $query->where('id', null);
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'doctor') {
+            return Schedule::where('doctor_id', $user->doctor->id)->count();
+        }
+        return Schedule::count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'lime';
+    }
 
     public static function form(Form $form): Form
     {
@@ -31,23 +68,25 @@ class ScheduleResource extends Resource
             ->schema([
                 Forms\Components\Select::make('doctor_id')
                     ->options(
-                        Doctor::join('users', 'doctors.user_id', '=', 'users.id') 
-                            ->pluck('users.name', 'doctors.id') 
+                        Doctor::join('users', 'doctors.user_id', '=', 'users.id')
+                            ->pluck('users.name', 'doctors.id')
                     )
                     ->required(),
 
 
                 Forms\Components\Select::make('day')
                     ->options([
-                        "Sunday" => "Sunday", 
-                        "Monday" => "Monday", 
-                        "Tuesday" => "Tuesday", 
-                        "Wednesday" => "Wednesday", 
-                        "Thursday" => "Thursday", 
-                        "Friday" => "Friday", 
+                        "Sunday" => "Sunday",
+                        "Monday" => "Monday",
+                        "Tuesday" => "Tuesday",
+                        "Wednesday" => "Wednesday",
+                        "Thursday" => "Thursday",
+                        "Friday" => "Friday",
                         "Saturday" => "Saturday"
                     ])
-                    ->required(),
+                    ->required()
+                    ->reactive()
+                    ->disabled(),
 
                 Forms\Components\TimePicker::make('start_time')
                     ->label('Start Time')
@@ -69,6 +108,29 @@ class ScheduleResource extends Resource
                         'available' => 'Available',
                         'unavailable' => 'Unavailable',
                     ])
+                    ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {
+                        return static function (string $attribute, $value, Closure $fail) use ($get, $component) {
+                            $doctorId = $get('doctor_id');
+                            $day = $get('day');
+
+                            if ($doctorId && $day) {
+                                $appointmentsExist = Appointment::where('doctor_id', $doctorId)
+                                    ->where('day', $day)
+                                    ->where('status', '!=', 'completed')
+                                    ->exists();
+
+                                if ($appointmentsExist) {
+                                    $fail("Sorry !! You can't change your status as you still have appointments on this day.");
+
+                                    Notification::make()
+                                    ->title('Error')
+                                    ->body('Sorry !! You can\'t change your status as you still have appointments on this day.')
+                                    ->danger()
+                                    ->send();
+                                }
+                            }
+                        };
+                    })
                     ->required(),
             ]);
     }
@@ -105,7 +167,7 @@ class ScheduleResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -129,6 +191,6 @@ class ScheduleResource extends Resource
 
     public static function canCreate(): bool
     {
-        return false; 
+        return false;
     }
 }

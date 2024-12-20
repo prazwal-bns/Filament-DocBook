@@ -29,12 +29,12 @@ class PaymentResource extends Resource
     protected static ?string $navigationGroup = 'Manage Appointments';
 
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function getNavigationBadge(): ?string
     {
         $user = Auth::user();
-    
+
         if ($user->role === 'patient') {
             return static::getModel()::whereHas('appointment', function ($query) use ($user) {
                 $query->where('patient_id', $user->patient->id);
@@ -44,10 +44,10 @@ class PaymentResource extends Resource
                 $query->where('doctor_id', $user->doctor->id);
             })->count();
         }
-    
+
         return static::getModel()::count();
     }
-    
+
 
     public static function getNavigationBadgeColor(): string|array|null
     {
@@ -70,14 +70,14 @@ class PaymentResource extends Resource
                 $query->where('patient_id', $user->patient->id);
             });
         }
-    
+
         // For doctors, filter payments based on their associated appointments
         if ($user->role === 'doctor') {
             return $query->whereHas('appointment', function ($query) use ($user) {
                 $query->where('doctor_id', $user->doctor->id);
             });
         }
-    
+
         return $query->where('id', null);
     }
 
@@ -106,24 +106,27 @@ class PaymentResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('appointment.patient.user.name')
                     ->label('Patient Name')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('appointment.doctor.user.name')
                     ->label('Doctor Name')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('appointment.appointment_date')
                     ->label('Appointment Date')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('pid')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                
+
                 BadgeColumn::make('payment_status')
                     ->label('Payment Status')
                     ->searchable()
                     ->icon(function ($record) {
                         return $record->payment_status === 'paid'
-                            ? 'heroicon-o-credit-card' 
-                            : 'heroicon-o-exclamation-circle'; 
+                            ? 'heroicon-o-credit-card'
+                            : 'heroicon-o-exclamation-circle';
                     })
                     ->colors([
                         'success' => 'paid',
@@ -148,9 +151,7 @@ class PaymentResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                //
-            ])
+
             ->actions([
                 ActionGroup::make([
                     Action::make('Pay with eSewa')
@@ -163,7 +164,7 @@ class PaymentResource extends Resource
                         ->color('success')
                         ->label('Pay via eSewa')
                         ->tooltip('Click to pay via eSewa'),
-                    
+
                     Action::make('Pay via Stripe')
                         ->url(fn ($record) => route('filament.admin.resources.payments.stripe', ['appointmentId' => $record->id]))
                         ->icon('heroicon-o-currency-dollar')
@@ -179,7 +180,7 @@ class PaymentResource extends Resource
                 ->color('purple')
                 ->visible(fn($record) => (Auth::user()->role === 'admin' || Auth::user()->role ==='patient'))
                 ->button(),
-                
+
                 Tables\Actions\ViewAction::make(),
                 // Tables\Actions\EditAction::make(),
                 // Action::make('Pay with eSewa')
@@ -217,7 +218,7 @@ class PaymentResource extends Resource
         return [
             'index' => Pages\ListPayments::route('/'),
             'create' => Pages\CreatePayment::route('/create'),
-            'stripe' => Pages\StripePayment::route('/stripe/{appointmentId}'), 
+            'stripe' => Pages\StripePayment::route('/stripe/{appointmentId}'),
             // 'view' => Pages\ViewPayment::route('/{record}'),
             // 'edit' => Pages\EditPayment::route('/{record}/edit'),
         ];

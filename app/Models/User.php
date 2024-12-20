@@ -31,18 +31,18 @@ class User extends Authenticatable implements HasAvatar
         if ($this->avatar_url) {
             return $this->avatar_url;
         }
-    
+
         $roleAvatars = [
             'admin' => 'https://cdn-icons-png.freepik.com/512/3281/3281355.png',
             'patient' => 'https://cdn-icons-png.freepik.com/512/3135/3135768.png',
             'doctor' => 'https://cdn-icons-png.freepik.com/512/921/921059.png',
         ];
-    
+
         return $roleAvatars[$this->role] ?? 'https://source.boringavatars.com/beam/120/' . urlencode($this->name);
     }
-    
 
-    
+
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -70,9 +70,6 @@ class User extends Authenticatable implements HasAvatar
     public function patient(){
         return $this->hasOne(Patient::class);
     }
-
-
-
 
     public function doctor()
     {

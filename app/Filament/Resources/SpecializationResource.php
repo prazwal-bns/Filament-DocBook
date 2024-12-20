@@ -20,7 +20,7 @@ class SpecializationResource extends Resource
 
     protected static ?string $navigationGroup = 'Mangage Specializations';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 7;
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
 
     public static function getNavigationBadge(): ?string

@@ -2,26 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.2);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-.animated-icon {
-    animation: pulse 1s infinite;
-}
-
-.icon-paid {
-    animation: none; /* Disable animation for 'paid' */
-}
-
-.icon-unpaid {
-    animation: pulse 1s infinite; /* Animation for 'unpaid' */
-}

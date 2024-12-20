@@ -31,7 +31,7 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
 
     public static function getNavigationBadge(): ?string
     {
@@ -42,6 +42,8 @@ class UserResource extends Resource
     {
         return static::getModel()::count() > 10 ? 'info' : 'success';
     }
+
+
 
     public static function form(Form $form): Form
     {
@@ -61,7 +63,7 @@ class UserResource extends Resource
                     'doctor' => 'Doctor',
                 ])
                 ->required()
-                ->reactive() 
+                ->reactive()
                 ->afterStateUpdated(function (callable $set, $state) {
                     // Clear specialization when the role is not 'doctor'
                     if ($state !== 'doctor') {
@@ -75,10 +77,10 @@ class UserResource extends Resource
                         'male' => 'Male',
                         'female' => 'Female',
                     ])
-                    ->required(fn (callable $get) => $get('role') === 'patient') 
-                    ->hidden(fn (callable $get) => $get('role') !== 'patient'), 
+                    ->required(fn (callable $get) => $get('role') === 'patient')
+                    ->hidden(fn (callable $get) => $get('role') !== 'patient'),
 
-                    
+
                 Forms\Components\Select::make('specialization_id')
                         ->label('Specialization Name')
                         ->relationship('doctor.specialization', 'name')
@@ -86,7 +88,7 @@ class UserResource extends Resource
                         ->hidden(fn (callable $get) => $get('role') !== 'doctor')
                         ->default(fn ($record) => $record->doctor->specialization_id ?? null),
 
-                
+
                     Forms\Components\TextInput::make('address'),
                     Forms\Components\TextInput::make('phone')
                         ->label('Phone Number')
@@ -147,17 +149,9 @@ class UserResource extends Resource
             ]);
     }
 
-    // public static function getRelations(): array
-    // {   
-    //     return [
-    //         PatientRelationManager::class,
-    //         DoctorRelationManager::class,
-    //     ];
-    // }
-
     public static function getRelations(): array
     {
-        $recordId = request()->route('record'); 
+        $recordId = request()->route('record');
 
         if (!$recordId) {
             return [];
@@ -183,6 +177,7 @@ class UserResource extends Resource
         // Default: No relations for other roles
         return [];
     }
+
 
 
     public static function infolist(Infolist $infolist): Infolist

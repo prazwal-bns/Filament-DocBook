@@ -25,7 +25,7 @@ class DoctorResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6;
 
     public static function getNavigationBadge(): ?string
     {
@@ -52,7 +52,7 @@ class DoctorResource extends Resource
                     ->options([
                         'available' => 'Available',
                         'not_available' => 'Unavailable',
-                    ])  
+                    ])
                     ->required(),
                 Forms\Components\Textarea::make('bio')
                     ->columnSpanFull(),
