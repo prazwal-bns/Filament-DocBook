@@ -26,7 +26,10 @@ class CustomProfile extends Page
     protected static string $view = 'filament.pages.custom-profile';
     protected static ?string $navigationGroup = 'Profile';
 
+    protected ?string $heading;
+
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
+
 
     protected static ?string $navigationLabel = 'Edit My Profile';
 
@@ -43,6 +46,8 @@ class CustomProfile extends Page
     {
         $user = Auth::user();
         $this->data = collect($user)->only(['name', 'email', 'address', 'phone'])->toArray();
+
+        $this->heading = 'Edit ' . $user->name . ' Profile';
 
         if ($user->role === 'patient') {
             $patient = Patient::where('user_id', $user->id)->first();
@@ -99,7 +104,7 @@ class CustomProfile extends Page
 
         $hasPendingAppointments = $user->doctor->appointments()
             ->where('status', '!=', 'completed')
-            ->where('date', '>', now())
+            ->where('appointment_date', '>', now())
             ->exists();
 
         if ($hasPendingAppointments) {
