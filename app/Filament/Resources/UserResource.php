@@ -44,7 +44,6 @@ class UserResource extends Resource
     }
 
 
-
     public static function form(Form $form): Form
     {
         $user = User::with('doctor.specialization')->find(request()->route('record'));
@@ -196,4 +195,11 @@ class UserResource extends Resource
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
+
+    // protected static function getPages(): array
+    // {
+    //     return [
+    //         'create' => Register::class,  // Register the 'Register' page
+    //     ];
+    // }
 }

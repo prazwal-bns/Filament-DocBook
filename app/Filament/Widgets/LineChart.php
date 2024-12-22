@@ -11,7 +11,10 @@ class LineChart extends ChartWidget
 {
     protected static ?string $heading = 'Users';
 
+
     protected static ?int $sort = 2;
+
+        protected static string $color = 'warning';
 
     // protected int | string | array $columnSpan = 'full';
 
@@ -60,9 +63,9 @@ class LineChart extends ChartWidget
                     [
                         'label' => 'Users Registered',
                         'data' => $data,
-                        'backgroundColor' => 'rgba(75, 192, 192, 0.2)',
-                        'borderColor' => 'rgba(75, 192, 192, 1)',
-                        'borderWidth' => 2,
+                        // 'backgroundColor' => 'rgba(75, 192, 192, 0.2)',
+                        // 'borderColor' => 'rgba(75, 192, 192, 1)',
+                        // 'borderWidth' => 2,
                     ],
                 ],
                 'labels' => $labels,
@@ -79,7 +82,6 @@ class LineChart extends ChartWidget
                 ->get()
                 ->pluck('count', 'day');
 
-            // Map SQLite weekday numbers (0 = Sunday, 1 = Monday, ...) to actual names
             $dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             $data = array_map(
                 fn($day) => $weeklyAppointments[$day] ?? 0,

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
+use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable implements HasAvatar
 {
@@ -74,6 +75,29 @@ class User extends Authenticatable implements HasAvatar
     public function doctor()
     {
         return $this->hasOne(Doctor::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function ($user) {
+            if ($user->role !== 'patient') {
+                $user->role = 'patient';
+            }
+
+            if (!empty($user->password)) {
+                $user->password = Hash::make($user->password);
+            }
+        });
+
+        static::created(function ($user) {
+            if ($user->role === 'patient') {
+                Patient::create([
+                    'user_id' => $user->id,
+                    'gender' => $user->gender ?? null,
+                    'dob' => $user->dob ?? null,
+                ]);
+            }
+        });
     }
 
 }

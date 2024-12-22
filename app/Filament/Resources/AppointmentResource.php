@@ -109,7 +109,7 @@ class AppointmentResource extends Resource
                     ->label('Doctor Name')
                     ->native(false)
                     ->preload()
-                    ->hidden(fn () => Auth::user()->role === 'doctor') 
+                    ->hidden(fn () => Auth::user()->role === 'doctor')
                     ->disabled(fn ($livewire) => Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
                     ->options(
                 Doctor::where('status', 'available')
@@ -125,13 +125,13 @@ class AppointmentResource extends Resource
                         return static function (string $attribute, $value, Closure $fail) use ($get, $component) {
                             $doctorId = $value;
                             $day = $get('day');
-                
+
                             // Fetch the doctor's schedule for the selected day
                             $schedule = Schedule::where('doctor_id', $doctorId)
                                 ->where('day', $day)
                                 ->where('status', 'available')
                                 ->first();
-                
+
                             if (!$schedule) {
                                 $fail("The selected doctor is not available on this day.");
                                 return;
@@ -161,7 +161,7 @@ class AppointmentResource extends Resource
                         ];
                         return new AppointmentValidationRule($formState);
                     }),
-                   
+
 
                 TimePicker::make('start_time')
                     ->label('Start Time')
@@ -177,7 +177,7 @@ class AppointmentResource extends Resource
                     ->seconds(false)
                     ->after('start_time')
                     ->required(),
-                
+
                 Select::make('status')
                     ->options([
                         'pending' => 'Pending',
@@ -196,16 +196,16 @@ class AppointmentResource extends Resource
                     ->rows(10)
                     ->cols(20)
                     ->columnSpanFull(),
-                
+
             ]);
-        
+
     }
 
 
 
     // public static function table(Table $table): Table
     // {
-        
+
     //     return $table
     //         ->columns([
     //             Tables\Columns\TextColumn::make('patient.user.name')
@@ -236,7 +236,7 @@ class AppointmentResource extends Resource
     //             Tables\Columns\TextColumn::make('status')
     //                 ->searchable(),
 
-                
+
     //             Tables\Columns\TextColumn::make('day')
     //                 ->searchable(),
     //         ])
@@ -303,7 +303,7 @@ class AppointmentResource extends Resource
     //         ]);
     // }
 
-    
+
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([
