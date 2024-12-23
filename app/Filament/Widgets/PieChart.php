@@ -14,7 +14,7 @@ class PieChart extends ChartWidget
 
     protected static ?int $sort = 3;
 
-    protected static ?string $maxHeight = '301px';
+    protected static ?string $maxHeight = '252px';
 
     protected function getData(): array
     {

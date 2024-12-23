@@ -21,7 +21,8 @@ class DoctorResource extends Resource
 {
     protected static ?string $model = Doctor::class;
 
-    protected static ?string $navigationGroup = 'Mangage Users';
+    protected static ?string $navigationGroup = 'Users';
+
 
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 
@@ -69,6 +70,9 @@ class DoctorResource extends Resource
                 Tables\Columns\TextColumn::make('specialization.name')
                 ->label('Specialization Name')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('bio')
+                ->label('Bio')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -113,7 +117,7 @@ class DoctorResource extends Resource
         return [
             'index' => Pages\ListDoctors::route('/'),
             'create' => Pages\CreateDoctor::route('/create'),
-            // 'view' => Pages\ViewDoctor::route('/{record}'),
+            'view' => Pages\ViewDoctor::route('/{record}'),
             'edit' => Pages\EditDoctor::route('/{record}/edit'),
         ];
     }

@@ -9,6 +9,8 @@ use App\Models\Review;
 use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -269,7 +271,11 @@ class ReviewResource extends Resource
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([
-
+            Section::make('')
+                ->schema([
+                    TextEntry::make('review_msg')->label('Review Message'),
+                ])
+                ->columns(2),
         ]);
     }
 

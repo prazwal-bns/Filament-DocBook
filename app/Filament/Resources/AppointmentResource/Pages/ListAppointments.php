@@ -61,7 +61,8 @@ class ListAppointments extends ListRecords
 
                 TextColumn::make('appointment_date')
                     ->label('Date')
-                    ->date(),
+                    ->date()
+                    ->searchable(),
 
 
                 BadgeColumn::make('payment.payment_status')
@@ -69,8 +70,8 @@ class ListAppointments extends ListRecords
                     ->colors([
                         'success' => 'paid',
                         'danger' => 'unpaid',
-                    ]),
-                
+                    ])->searchable(),
+
                 TextColumn::make('day')
                         ->searchable(),
 
@@ -79,7 +80,7 @@ class ListAppointments extends ListRecords
 
                 TextColumn::make('end_time')
                     ->label('End Time'),
-                
+
 
                 BadgeColumn::make('status')
                     ->label('Status')
@@ -146,23 +147,23 @@ class ListAppointments extends ListRecords
                             ->title('Appointment Removed!')
                             ->body("The appointment with Dr. {$record->doctor->user->name} for {$record->patient->user->name} on {$record->appointment_date} has been removed.");
                     }),
-                
+
                 ActionGroup::make([
                     Action::make('review')
                         ->label('Leave a Review')
                         ->color('teal')
                         ->icon('heroicon-o-pencil-square')
-                        ->visible(fn ($record) => ($record->status === 'completed' && !$record->review) && 
+                        ->visible(fn ($record) => ($record->status === 'completed' && !$record->review) &&
                              (Auth::user()->role === 'admin' || Auth::user()->doctor))
                         ->url(fn ($record) => route('filament.admin.resources.reviews.create', ['appointment_id' => $record->id])),
 
-                        
+
                     Action::make('view_review')
                         ->label('View Review')
                         ->color('indigo')
                         ->icon('heroicon-o-eye')
-                        ->visible(fn ($record) => $record->review)  
-                        ->url(fn ($record) => route('filament.admin.resources.reviews.view', ['record' => $record->review])), 
+                        ->visible(fn ($record) => $record->review)
+                        ->url(fn ($record) => route('filament.admin.resources.reviews.view', ['record' => $record->review])),
 
                     Action::make('updateStatus')
                         ->label('Update Status')
@@ -186,7 +187,7 @@ class ListAppointments extends ListRecords
                             $record->update([
                                 'status' => $data['status'],
                             ]);
-        
+
                             Notification::make()
                                 ->title('Status Updated')
                                 ->success()
@@ -198,11 +199,11 @@ class ListAppointments extends ListRecords
                     ->size(ActionSize::Small)
                     ->color('purple')
                     ->button(),
-                
-    
+
+
             ])
             ->bulkActions([
-    
+
                 // Bulk Action for updating the status of selected records
                 // BulkAction::make('updateStatusBulk')
                 //     ->label('Update Status for Selected')
@@ -223,13 +224,13 @@ class ListAppointments extends ListRecords
                 //                 'status' => $data['status'],
                 //             ]);
                 //         }
-    
+
                 //         Notification::make()
                 //             ->title('Status Updated')
                 //             ->success()
                 //             ->send();
                 //     }),
-    
+
             ]);
     }
 
@@ -240,7 +241,7 @@ class ListAppointments extends ListRecords
         return [
             'All' => Tab::make()
             ->icon('heroicon-o-ellipsis-horizontal-circle'),
-            
+
             'Pending' => Tab::make()
                 ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(fn (Builder $query) =>
@@ -257,7 +258,7 @@ class ListAppointments extends ListRecords
                         })
                         ->count() // Count pending appointments for the logged-in user
                 ),
-            
+
             'Confirmed' => Tab::make()
                 ->icon('heroicon-o-check-badge')
                 ->modifyQueryUsing(fn (Builder $query) =>
@@ -274,11 +275,11 @@ class ListAppointments extends ListRecords
                         })
                         ->count() // Count confirmed appointments for the logged-in user
                 ),
-            
+
             'Completed' => Tab::make()
                 ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('status', 'completed') // Filter by 'completed' status
-                ) 
+                )
                 ->icon('heroicon-o-shield-check')
                 ->badge(
                     // Filter by status and also by the user’s role
@@ -298,11 +299,11 @@ class ListAppointments extends ListRecords
 
 
 
-  
+
     // public function getTabs(): array
     // {
     //     $today = Carbon::today();
-    
+
     //     return [
     //         'All' => Tab::make(),
     //         'Today' => Tab::make()
@@ -335,7 +336,7 @@ class ListAppointments extends ListRecords
     //             ),
     //     ];
     // }
-    
+
 
 
 }

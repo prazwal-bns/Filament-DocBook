@@ -13,7 +13,7 @@ class DoctorPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->role === 'admin';
+        return $user->role === 'admin' || $user->role === 'patient';
     }
 
     /**
@@ -21,7 +21,7 @@ class DoctorPolicy
      */
     public function view(User $user, Doctor $doctor): bool
     {
-        return $user->role === 'admin';
+        return $user->role === 'admin' || $user->role === 'patient';
     }
 
     /**

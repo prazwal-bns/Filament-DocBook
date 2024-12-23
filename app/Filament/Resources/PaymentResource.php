@@ -2,23 +2,27 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\PaymentResource\Pages;
-use App\Filament\Resources\PaymentResource\RelationManagers;
-use App\Models\Payment;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms;
-use Filament\Tables\Actions\Action;
+use Filament\Tables;
+use App\Models\Payment;
 use Filament\Forms\Form;
+use Filament\Tables\Table;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
-use Filament\Support\Enums\ActionSize;
-use Filament\Tables;
-use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\Auth;
+use Filament\Support\Enums\ActionSize;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Columns\BadgeColumn;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Infolists\Components\TextEntry;
+use App\Filament\Resources\PaymentResource\Pages;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\PaymentResource\RelationManagers;
+use App\Filament\Resources\PaymentResource\RelationManagers\AppointmentRelationManager;
+use Filament\Infolists\Components\Section;
 
 class PaymentResource extends Resource
 {
@@ -202,14 +206,19 @@ class PaymentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AppointmentRelationManager::class,
         ];
     }
 
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([
-
+            Section::make('Payment Information')
+                ->schema([
+                   TextEntry::make('payment_status'),
+                   TextEntry::make('amount'),
+                ])
+                ->columns(2),
         ]);
     }
 
@@ -219,7 +228,7 @@ class PaymentResource extends Resource
             'index' => Pages\ListPayments::route('/'),
             'create' => Pages\CreatePayment::route('/create'),
             'stripe' => Pages\StripePayment::route('/stripe/{appointmentId}'),
-            // 'view' => Pages\ViewPayment::route('/{record}'),
+            'view' => Pages\ViewPayment::route('/{record}'),
             // 'edit' => Pages\EditPayment::route('/{record}/edit'),
         ];
     }

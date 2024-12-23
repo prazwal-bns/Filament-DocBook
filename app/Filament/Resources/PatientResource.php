@@ -20,7 +20,7 @@ class PatientResource extends Resource
 {
     protected static ?string $model = Patient::class;
 
-    protected static ?string $navigationGroup = 'Mangage Users';
+    protected static ?string $navigationGroup = 'Users';
 
     protected static ?string $navigationIcon = 'heroicon-o-user';
 
@@ -105,7 +105,7 @@ class PatientResource extends Resource
         return [
             'index' => Pages\ListPatients::route('/'),
             'create' => Pages\CreatePatient::route('/create'),
-            // 'view' => Pages\ViewPatient::route('/{record}'),
+            'view' => Pages\ViewPatient::route('/{record}'),
             'edit' => Pages\EditPatient::route('/{record}/edit'),
         ];
     }

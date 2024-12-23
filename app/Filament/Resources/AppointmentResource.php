@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use Closure;
 use App\Filament\Resources\AppointmentResource\Pages;
 use App\Filament\Resources\AppointmentResource\RelationManagers;
+use App\Filament\Resources\AppointmentResource\RelationManagers\ReviewRelationManager;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
@@ -203,7 +204,7 @@ class AppointmentResource extends Resource
                             ->required(),
 
                         Textarea::make('appointment_reason')
-                            ->rows(8)
+                            ->rows(10)
                             ->columnSpanFull(),
                 ])->columns(2),
 
@@ -268,7 +269,7 @@ class AppointmentResource extends Resource
                                     $appointmentsData = $appointments->map(function ($appointment) {
                                         $patientName = $appointment->patient->user->name ?? 'Unknown Patient';
                                         return [
-                                            'patient' => $patientName,
+                                            // 'patient' => $patientName,
                                             'date' => $appointment->appointment_date,
                                             'time' => "{$appointment->start_time} - {$appointment->end_time}",
                                             'status' => $appointment->status,
@@ -276,7 +277,8 @@ class AppointmentResource extends Resource
                                     })->values()->toArray();
 
                                     return view('filament.forms.components.list', [
-                                        'columns' => ['patient', 'date', 'time', 'status'],
+                                        // 'columns' => ['patient', 'date', 'time', 'status'],
+                                        'columns' => ['date', 'time'],
                                         'rows' => $appointmentsData,
                                     ]);
                                 })
@@ -290,109 +292,6 @@ class AppointmentResource extends Resource
 
     }
 
-
-
-    // public static function table(Table $table): Table
-    // {
-
-    //     return $table
-    //         ->columns([
-    //             Tables\Columns\TextColumn::make('patient.user.name')
-    //                 ->sortable()
-    //                 ->searchable()
-    //                 ->label('Patient Name'),
-    //             Tables\Columns\TextColumn::make('doctor.user.name')
-    //                 ->label('Doctor Name')
-    //                 ->searchable()
-    //                 ->sortable(),
-    //             Tables\Columns\TextColumn::make('appointment_date')
-    //                 ->date()
-    //                 ->sortable(),
-    //             // Tables\Columns\TextColumn::make('payment.payment_status')
-    //             //     ->label('Payment Status')
-    //             //     ->sortable(),
-    //                 // ->defaultSort('asc'),
-    //             Tables\Columns\TextColumn::make('start_time'),
-    //             Tables\Columns\TextColumn::make('end_time'),
-    //             Tables\Columns\TextColumn::make('created_at')
-    //                 ->dateTime()
-    //                 ->sortable()
-    //                 ->toggleable(isToggledHiddenByDefault: true),
-    //             Tables\Columns\TextColumn::make('updated_at')
-    //                 ->dateTime()
-    //                 ->sortable()
-    //                 ->toggleable(isToggledHiddenByDefault: true),
-    //             Tables\Columns\TextColumn::make('status')
-    //                 ->searchable(),
-
-
-    //             Tables\Columns\TextColumn::make('day')
-    //                 ->searchable(),
-    //         ])
-    //         ->defaultSort('appointment_date')
-    //         ->filters([
-    //             Filter::make('appointment_date')
-    //             ->label('Appointment Date')
-    //             ->form([
-    //                 DatePicker::make('date')
-    //                     ->placeholder('Select Appointment Date')
-    //                     ->label('Select Appointment Date'),
-    //             ])
-    //             ->query(function (Builder $query, array $data) {
-    //                 if ($data['date']) {
-    //                     // Filter the records based on the selected appointment date
-    //                     $query->whereDate('appointment_date', Carbon::parse($data['date'])->toDateString());
-    //                 }
-    //             })
-    //             ->indicateUsing(function (array $data): ?string {
-    //                 if (! isset($data['date']) || ! $data['date']) {
-    //                     return null;
-    //                 }
-
-    //                 // Display the selected date in a user-friendly format
-    //                 return 'Appointment on ' . Carbon::parse($data['date'])->toFormattedDateString();
-    //             }),
-
-    //             SelectFilter::make('day')
-    //                 ->options([
-    //                     'Sunday' => 'Sunday',
-    //                     'Monday' => 'Monday',
-    //                     'Tuesday' => 'Tuesday',
-    //                     'Wednesday' => 'Wednesday',
-    //                     'Thursday' => 'Thursday',
-    //                     'Friday' => 'Friday',
-    //                     'Saturday' => 'Saturday',
-    //                 ])
-    //                 ->label('Day')
-    //                 ->placeholder('All Days'),
-
-    //             SelectFilter::make('doctor_id')
-    //                 ->options(function () {
-    //                     return Doctor::all()->pluck('user.name', 'id')->toArray();
-    //                 })
-    //                 ->label('Doctor')
-    //                 ->placeholder('Select Doctor'),
-    //         ])
-    //         ->actions([
-    //             Tables\Actions\ViewAction::make(),
-    //             Tables\Actions\EditAction::make(),
-    //             Tables\Actions\DeleteAction::make()
-    //                 ->successNotification(function ($record) {
-    //                     return Notification::make()
-    //                         ->success()
-    //                         ->icon('heroicon-o-trash')
-    //                         ->title('Appointment Removed!')
-    //                         ->body("The appointment with Dr. {$record->doctor->user->name} for {$record->patient->user->name} on {$record->appointment_date} has been removed.");
-    //                 }),
-    //         ])
-    //         ->bulkActions([
-    //             Tables\Actions\BulkActionGroup::make([
-    //                 Tables\Actions\DeleteBulkAction::make(),
-    //             ]),
-    //         ]);
-    // }
-
-
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([
@@ -403,7 +302,7 @@ class AppointmentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ReviewRelationManager::class
         ];
     }
 
@@ -412,7 +311,7 @@ class AppointmentResource extends Resource
         return [
             'index' => Pages\ListAppointments::route('/'),
             'create' => Pages\CreateAppointment::route('/create'),
-            // 'view' => Pages\ViewAppointment::route('/{record}'),
+            'view' => Pages\ViewAppointment::route('/{record}'),
             'edit' => Pages\EditAppointment::route('/{record}/edit'),
         ];
     }
