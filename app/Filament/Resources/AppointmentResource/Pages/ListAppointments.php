@@ -66,7 +66,7 @@ class ListAppointments extends ListRecords
 
 
                 BadgeColumn::make('payment.payment_status')
-                    ->label('Payment Status')
+                    ->label('Payment')
                     ->colors([
                         'success' => 'paid',
                         'danger' => 'unpaid',

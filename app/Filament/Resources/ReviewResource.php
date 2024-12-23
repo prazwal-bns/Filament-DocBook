@@ -271,11 +271,12 @@ class ReviewResource extends Resource
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([
-            Section::make('')
-                ->schema([
-                    TextEntry::make('review_msg')->label('Review Message'),
-                ])
-                ->columns(2),
+            // Section::make('')
+            //     ->schema([
+            //         // TextEntry::make('appointment_id')->label('Appointment Details'),
+            //         TextEntry::make('review_msg')->label('Review Message'),
+            //     ])
+            //     ->columns(2),
         ]);
     }
 

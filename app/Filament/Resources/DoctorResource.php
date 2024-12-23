@@ -2,20 +2,21 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\DoctorResource\Pages;
-use App\Filament\Resources\DoctorResource\RelationManagers;
-use App\Filament\Resources\UserResource\RelationManagers\UserRelationManager;
-use App\Models\Doctor;
-use App\Models\Specialization;
 use Filament\Forms;
+use Filament\Tables;
+use App\Models\Doctor;
 use Filament\Forms\Form;
+use Filament\Tables\Table;
+use App\Models\Specialization;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\DoctorResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\DoctorResource\RelationManagers;
+use App\Filament\Resources\UserResource\RelationManagers\UserRelationManager;
 
 class DoctorResource extends Resource
 {
@@ -23,8 +24,16 @@ class DoctorResource extends Resource
 
     protected static ?string $navigationGroup = 'Users';
 
-
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        if(Auth::user()->role === 'patient'){
+            return false;
+        }
+        return true;
+    }
+
 
     protected static ?int $navigationSort = 6;
 
@@ -49,6 +58,7 @@ class DoctorResource extends Resource
                     ->label('Specialization Name')
                     ->options(Specialization::pluck('name', 'id'))
                     ->required(),
+                Forms\Components\TextInput::make('address'),
                 Forms\Components\Select::make('status')
                     ->options([
                         'available' => 'Available',

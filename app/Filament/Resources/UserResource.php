@@ -87,6 +87,13 @@ class UserResource extends Resource
                         ->hidden(fn (callable $get) => $get('role') !== 'doctor')
                         ->default(fn ($record) => $record->doctor->specialization_id ?? null),
 
+                // Forms\Components\Select::make('specialization_id')
+                //         ->label('Specialization')
+                //         ->options(fn() => Specialization::pluck('name', 'id')->toArray())
+                //         // ->disabled(fn(callable $get) => $get('id') !== null)
+                //         ->required()
+                //         ->default(fn($record) => $record->specialization_id)
+                //         ->visible(fn($get) => $get('role') == 'doctor'),
 
                     Forms\Components\TextInput::make('address'),
                     Forms\Components\TextInput::make('phone')

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource;
 use App\Models\Doctor;
 use App\Models\Patient;
+use App\Models\User;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -82,6 +83,20 @@ class EditUser extends EditRecord
         }
 
         return $record;
+    }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $user = User::find($data['id']);
+
+        if ($data['role'] == 'doctor'){
+            $data['specialization_id'] = $user->doctor->specialization->id ?? null;
+        }
+
+        if ($data['role'] == 'patient'){
+            $data['gender'] = $user->patient->gender ?? null;
+        }
+        return $data;
     }
 
 
