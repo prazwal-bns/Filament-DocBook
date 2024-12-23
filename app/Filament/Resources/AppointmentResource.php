@@ -27,7 +27,10 @@ use Carbon\Carbon;
 use App\Models\Schedule;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Card;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select as ComponentsSelect;
+use Filament\Forms\Components\Split;
 use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -90,112 +93,198 @@ class AppointmentResource extends Resource
         return $form
             ->schema([
                 // Forms\Components\Select::make('patient_id')
-                Select::make('patient_id')
-                    ->label('Patient Name')
-                    // ->searchable()
-                    ->native(false)
-                    ->preload()
-                    ->options(
-                        Patient::with('user')
-                            ->get()->pluck('user.name','id')
-                    )
-                    ->hidden(fn () => Auth::user()->role === 'patient')
-                    ->required(fn () => Auth::user()->role !== 'patient'),
+            Split::make([
+                Section::make('Appointment')
+                    ->schema([
+                        Select::make('patient_id')
+                            ->label('Patient Name')
+                            // ->searchable()
+                            ->native(false)
+                            ->preload()
+                            ->options(
+                                Patient::with('user')
+                                    ->get()->pluck('user.name','id')
+                            )
+                            ->hidden(fn () => Auth::user()->role === 'patient')
+                            ->columnSpanFull()
+                            ->required(fn () => Auth::user()->role !== 'patient'),
 
-                Forms\Components\Hidden::make('status_only_update')
-                    ->default(false),
+                        Forms\Components\Hidden::make('status_only_update')
+                            ->default(false),
 
-                Select::make('doctor_id')
-                    ->label('Doctor Name')
-                    ->native(false)
-                    ->preload()
-                    ->hidden(fn () => Auth::user()->role === 'doctor')
-                    ->disabled(fn ($livewire) => Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
-                    ->options(
-                Doctor::where('status', 'available')
-                            ->whereHas('schedules', function ($query) {
-                                $query->whereNotNull('id'); // Ensure the doctor has at least one schedule
+                        Select::make('doctor_id')
+                            ->columnSpanFull()
+                            ->label('Doctor Name')
+                            ->native(false)
+                            ->reactive()
+                            ->preload()
+                            ->hidden(fn () => Auth::user()->role === 'doctor')
+                            // ->disabled(fn ($livewire) => Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
+                            ->options(
+                        Doctor::where('status', 'available')
+                                    ->whereHas('schedules', function ($query) {
+                                        $query->whereNotNull('id'); // Ensure the doctor has at least one schedule
+                                    })
+                                    ->with('user')
+                                    ->get()
+                                    ->pluck('user.name', 'id')
+                            )
+                            ->required()
+                            ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {
+                                return static function (string $attribute, $value, Closure $fail) use ($get, $component) {
+                                    $doctorId = $value;
+                                    $day = $get('day');
+
+                                    // Fetch the doctor's schedule for the selected day
+                                    $schedule = Schedule::where('doctor_id', $doctorId)
+                                        ->where('day', $day)
+                                        ->where('status', 'available')
+                                        ->first();
+
+                                    if (!$schedule) {
+                                        $fail("The selected doctor is not available on this day.");
+                                        return;
+                                    }
+                                };
+                            }),
+
+
+
+                        DatePicker::make('appointment_date')
+                            ->label('Appointment Date')
+                            ->columnSpanFull()
+                            ->reactive()
+                            ->minDate(now()->toDateString())
+                            ->afterStateUpdated(function (callable $set, $state) {
+                                if ($state) {
+                                    $dayName = Carbon::parse($state)->format('l');
+                                    $set('day', $dayName); // Set the day field based on the selected date
+                                }
                             })
-                            ->with('user')
-                            ->get()
-                            ->pluck('user.name', 'id')
-                    )
-                    ->required()
-                    ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {
-                        return static function (string $attribute, $value, Closure $fail) use ($get, $component) {
-                            $doctorId = $value;
-                            $day = $get('day');
-
-                            // Fetch the doctor's schedule for the selected day
-                            $schedule = Schedule::where('doctor_id', $doctorId)
-                                ->where('day', $day)
-                                ->where('status', 'available')
-                                ->first();
-
-                            if (!$schedule) {
-                                $fail("The selected doctor is not available on this day.");
-                                return;
-                            }
-                        };
-                    }),
+                            ->required()
+                            ->rule(static function (Forms\Get $get) {
+                                $formState = [
+                                    'start_time' => $get('start_time'),
+                                    'end_time' => $get('end_time'),
+                                    'doctor_id' => $get('doctor_id'),
+                                    'day' => $get('day'),
+                                ];
+                                return new AppointmentValidationRule($formState);
+                            }),
 
 
+                        TimePicker::make('start_time')
+                            ->label('Start Time')
+                            ->format('H:i')
+                            ->reactive()
+                            ->seconds(false)
+                            ->required(),
 
-                DatePicker::make('appointment_date')
-                    ->label('Appointment Date')
-                    ->reactive()
-                    ->minDate(now()->toDateString())
-                    ->afterStateUpdated(function (callable $set, $state) {
-                        if ($state) {
-                            $dayName = Carbon::parse($state)->format('l');
-                            $set('day', $dayName); // Set the day field based on the selected date
-                        }
-                    })
-                    ->required()
-                    ->rule(static function (Forms\Get $get) {
-                        $formState = [
-                            'start_time' => $get('start_time'),
-                            'end_time' => $get('end_time'),
-                            'doctor_id' => $get('doctor_id'),
-                            'day' => $get('day'),
-                        ];
-                        return new AppointmentValidationRule($formState);
-                    }),
+                        TimePicker::make('end_time')
+                            ->label('End Time')
+                            ->format('H:i')
+                            ->reactive()
+                            ->seconds(false)
+                            ->after('start_time')
+                            ->required(),
+
+                        Select::make('status')
+                            ->options([
+                                'pending' => 'Pending',
+                                'confirmed' => 'Confirmed',
+                                'completed' => 'Completed',
+                            ])
+                            ->label('Appointment Status')
+                            ->hidden()
+                            ->default('pending'),
+
+                        TextInput::make('day')
+                            ->hidden()
+                            ->required(),
+
+                        Textarea::make('appointment_reason')
+                            ->rows(8)
+                            ->columnSpanFull(),
+                ])->columns(2),
+
+                ]),
 
 
-                TimePicker::make('start_time')
-                    ->label('Start Time')
-                    ->format('H:i')
-                    ->reactive()
-                    ->seconds(false)
-                    ->required(),
+            Split::make([
+                    Section::make('Doctor\'s Schedule and Booked Appointments')
+                    // ->hidden(fn ($get) => !$get('doctor_id'))
+                    ->schema([
+                        Card::make()
+                            ->schema([
+                                Forms\Components\Placeholder::make('schedules')
+                                ->label('Schedules')
+                                ->content(function ($get) {
+                                    $doctorId = $get('doctor_id');
+                                    if (!$doctorId) {
+                                        return 'No doctor selected.';
+                                    }
 
-                TimePicker::make('end_time')
-                    ->label('End Time')
-                    ->format('H:i')
-                    ->reactive()
-                    ->seconds(false)
-                    ->after('start_time')
-                    ->required(),
+                                    $schedules = Schedule::where('doctor_id', $doctorId)->get();
 
-                Select::make('status')
-                    ->options([
-                        'pending' => 'Pending',
-                        'confirmed' => 'Confirmed',
-                        'completed' => 'Completed',
-                    ])
-                    ->label('Appointment Status')
-                    ->hidden()
-                    ->default('pending'),
+                                    if ($schedules->isEmpty()) {
+                                        return 'No schedules available for this doctor.';
+                                    }
 
-                TextInput::make('day')
-                    ->hidden()
-                    ->required(),
+                                    $schedulesData = $schedules->map(function ($schedule) {
+                                        return [
+                                            'day' => $schedule->day,
+                                            'time' => "{$schedule->start_time} - {$schedule->end_time}",
+                                            'status' => $schedule->status,
+                                        ];
+                                    })->values()->toArray();
 
-                Textarea::make('appointment_reason')
-                    ->rows(10)
-                    ->cols(20)
-                    ->columnSpanFull(),
+                                    return view('filament.forms.components.list', [
+                                        'columns' => ['day', 'time', 'status'],
+                                        'rows' => $schedulesData,
+                                    ]);
+                                })
+                                ->columnSpanFull(),
+                        ]),
+
+                        Card::make()
+                        ->schema([
+                            Forms\Components\Placeholder::make('appointments')
+                                ->label('Booked Appointments')
+                                ->content(function ($get) {
+                                    $doctorId = $get('doctor_id');
+                                    if (!$doctorId) {
+                                        return 'No doctor selected.';
+                                    }
+
+                                    $appointments = Appointment::where('doctor_id', $doctorId)
+                                        ->with(['patient.user'])
+                                        ->get()
+                                        ->where('status', '!=', 'completed');
+
+                                    if ($appointments->isEmpty()) {
+                                        return 'No appointments booked for this doctor.';
+                                    }
+
+                                    $appointmentsData = $appointments->map(function ($appointment) {
+                                        $patientName = $appointment->patient->user->name ?? 'Unknown Patient';
+                                        return [
+                                            'patient' => $patientName,
+                                            'date' => $appointment->appointment_date,
+                                            'time' => "{$appointment->start_time} - {$appointment->end_time}",
+                                            'status' => $appointment->status,
+                                        ];
+                                    })->values()->toArray();
+
+                                    return view('filament.forms.components.list', [
+                                        'columns' => ['patient', 'date', 'time', 'status'],
+                                        'rows' => $appointmentsData,
+                                    ]);
+                                })
+                                ->columnSpanFull(),
+                        ]),
+                ]),
+
+            ])->extraAttributes(['class' => 'w-[30%]'])
 
             ]);
 

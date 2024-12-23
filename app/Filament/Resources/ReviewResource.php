@@ -110,6 +110,31 @@ class ReviewResource extends Resource
                 //     ->visible(fn () => !request()->query('appointment_id')) // Only show if no `appointment_id` in the query string
                 //     ->required(fn () => !request()->query('appointment_id')),
 
+                // Forms\Components\Select::make('appointment_id')
+                //     ->label('Select Completed Appointment')
+                //     ->options(
+                //         Appointment::query()
+                //             ->where('status', 'completed')
+                //             ->when(Auth::user()->role === 'doctor', function ($query) {
+                //                 $query->where('doctor_id', Auth::user()->doctor->id);
+                //             })
+                //             ->with(['patient', 'doctor'])
+                //             ->get()
+                //             ->mapWithKeys(function ($appointment) {
+                //                 return [
+                //                     $appointment->id => "{$appointment->patient->user->name} with {$appointment->doctor->user->name} on {$appointment->appointment_date}",
+                //                 ];
+                //             })
+                //     )
+                //     ->searchable()
+                //     ->placeholder('Select a completed appointment')
+                //     ->visible(fn () => !request()->query('appointment_id'))
+                //     ->disabled(fn ($livewire) =>
+                //         ($livewire instanceof \Filament\Resources\Pages\EditRecord && in_array(Auth::user()->role, ['doctor', 'admin'])) ||
+                //         (Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
+                //     )
+                //     ->required(fn () => !request()->query('appointment_id')),
+
                 Forms\Components\Select::make('appointment_id')
                     ->label('Select Completed Appointment')
                     ->options(
@@ -118,6 +143,7 @@ class ReviewResource extends Resource
                             ->when(Auth::user()->role === 'doctor', function ($query) {
                                 $query->where('doctor_id', Auth::user()->doctor->id);
                             })
+                            ->doesntHave('review') // Exclude appointments with reviews
                             ->with(['patient', 'doctor'])
                             ->get()
                             ->mapWithKeys(function ($appointment) {
@@ -134,6 +160,7 @@ class ReviewResource extends Resource
                         (Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
                     )
                     ->required(fn () => !request()->query('appointment_id')),
+
 
 
                 Forms\Components\Textarea::make('review_msg')

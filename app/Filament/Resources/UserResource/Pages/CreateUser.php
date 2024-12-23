@@ -34,15 +34,21 @@ class CreateUser extends CreateRecord
             $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             foreach ($days as $day) {
                 Schedule::create([
-                    'doctor_id' => $doctor->id, 
+                    'doctor_id' => $doctor->id,
                     'day' => $day,
                     'status' => 'available',
-                    'start_time' => '09:00', 
-                    'end_time' => '18:00',   
+                    'start_time' => '09:00',
+                    'end_time' => '18:00',
                 ]);
             }
         }
 
         return $record;
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
 }

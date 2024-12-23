@@ -152,15 +152,16 @@ class UserResource extends Resource
     {
         $recordId = request()->route('record');
 
-        if (!$recordId) {
-            return [];
-        }
+        // if (!$recordId) {
+        //     return [];
+        // }
 
         $user = User::find($recordId);
 
         if (!$user) {
             return [];
         }
+
 
         // Check the role of the user and return the appropriate relations.
         if ($user->role === 'patient') {
