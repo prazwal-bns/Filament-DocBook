@@ -136,8 +136,18 @@ class ListAppointments extends ListRecords
                     ->placeholder('Select Doctor'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make()->visible(fn($record) => $record->status === 'pending'),
+                Action::make('Download')
+                    ->url(fn ($record) => route('appointments.downloadPdf', ['appointmentId' => $record->id]))
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(fn ($record) => $record->payment_status !== 'paid')
+                    ->color('fuchsia')
+                    ->iconButton()
+                    ->tooltip('Download Appointment Details'),
+
+
+
+                Tables\Actions\ViewAction::make()->hidden(true),
+                Tables\Actions\EditAction::make()->visible(fn($record) => $record->status === 'pending')->iconButton(),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn($record) => $record->status === 'pending')
                     ->successNotification(function ($record) {
@@ -205,31 +215,31 @@ class ListAppointments extends ListRecords
             ->bulkActions([
 
                 // Bulk Action for updating the status of selected records
-                // BulkAction::make('updateStatusBulk')
-                //     ->label('Update Status for Selected')
-                //     ->form([
-                //         Select::make('status')
-                //             ->label('Select Status')
-                //             ->options([
-                //                 'pending' => 'Pending',
-                //                 'confirmed' => 'Confirmed',
-                //                 'completed' => 'Completed',
-                //             ])
-                //             ->required(),
-                //     ])
-                //     ->action(function ($records, $data) {
-                //         // Update the status for selected records
-                //         foreach ($records as $record) {
-                //             $record->update([
-                //                 'status' => $data['status'],
-                //             ]);
-                //         }
+                BulkAction::make('updateStatusBulk')
+                    ->label('Update Status for Selected')
+                    ->form([
+                        Select::make('status')
+                            ->label('Select Status')
+                            ->options([
+                                'pending' => 'Pending',
+                                'confirmed' => 'Confirmed',
+                                'completed' => 'Completed',
+                            ])
+                            ->required(),
+                    ])
+                    ->action(function ($records, $data) {
+                        // Update the status for selected records
+                        foreach ($records as $record) {
+                            $record->update([
+                                'status' => $data['status'],
+                            ]);
+                        }
 
-                //         Notification::make()
-                //             ->title('Status Updated')
-                //             ->success()
-                //             ->send();
-                //     }),
+                        Notification::make()
+                            ->title('Status Updated')
+                            ->success()
+                            ->send();
+                    }),
 
             ]);
     }
