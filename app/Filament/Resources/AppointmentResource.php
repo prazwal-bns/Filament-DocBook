@@ -97,9 +97,6 @@ class AppointmentResource extends Resource
             Split::make([
                 Section::make('Appointment')
                     ->schema([
-                        // Hidden::make('appointment_id'),
-
-
                         Select::make('patient_id')
                             ->label('Patient Name')
                             ->rules('exists:patients,id')
@@ -168,16 +165,22 @@ class AppointmentResource extends Resource
                                     $set('day', $dayName); // Set the day field based on the selected date
                                 }
                             })
-                            // ->required()
+                            ->required()
                             ->rule(static function (Forms\Get $get) {
                                 $formState = [
                                     'start_time' => $get('start_time'),
                                     'end_time' => $get('end_time'),
                                     'doctor_id' => $get('doctor_id'),
                                     'day' => $get('day'),
+                                    'id' => $get('id'),
                                 ];
                                 return new AppointmentValidationRule($formState);
                             }),
+
+
+                        TextInput::make('id')
+                            ->hidden()
+                            ->required(),
 
 
                         TimePicker::make('start_time')

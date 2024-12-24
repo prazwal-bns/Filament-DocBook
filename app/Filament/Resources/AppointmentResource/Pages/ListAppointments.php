@@ -180,12 +180,12 @@ class ListAppointments extends ListRecords
                         ->color('primary')
                         ->icon('heroicon-o-pencil')
                         ->visible(fn ($record) => Auth::user()->role === 'admin' || Auth::user()->doctor)
-                        ->hidden(fn($record) => $record->status === 'completed')
+                        ->hidden(fn($record) => $record->status === 'completed'|| $record->status === 'pending')
                         ->form([
                             Select::make('status')
                                 ->label('Select Status')
                                 ->options([
-                                    'pending' => 'Pending',
+                                    // 'pending' => 'Pending',
                                     'confirmed' => 'Confirmed',
                                     'completed' => 'Completed',
                                 ])
@@ -207,7 +207,7 @@ class ListAppointments extends ListRecords
                     ->label('More actions')
                     ->icon('heroicon-m-information-circle')
                     ->size(ActionSize::Small)
-                    ->color('purple')
+                    ->color('violet')
                     ->button(),
 
 
@@ -221,7 +221,7 @@ class ListAppointments extends ListRecords
                         Select::make('status')
                             ->label('Select Status')
                             ->options([
-                                'pending' => 'Pending',
+                                // 'pending' => 'Pending',
                                 'confirmed' => 'Confirmed',
                                 'completed' => 'Completed',
                             ])

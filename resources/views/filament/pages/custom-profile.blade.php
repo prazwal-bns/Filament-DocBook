@@ -87,6 +87,7 @@
                         id="specialization"
                         wire:model="extraData.specialization_id"
                         required
+                        disabled
                         class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:focus:bg-gray-700 focus:ring-primary-500 focus:border-primary-500"
                     >
                         @foreach ($specializations as $id => $name)

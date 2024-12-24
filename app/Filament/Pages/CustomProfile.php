@@ -86,7 +86,7 @@ class CustomProfile extends Page
         } elseif ($user->role == 'doctor') {
             $doctor = $user->doctor ?? new Doctor(['user_id' => $user->id]);
             $doctor->update([
-                'specialization_id' => $this->extraData['specialization_id'],
+                // 'specialization_id' => $this->extraData['specialization_id'],
                 'bio' => $this->extraData['bio'],
             ]);
         }

@@ -34,9 +34,15 @@ class EditAppointment extends EditRecord
             ->body("Your appointment with Dr. {$record->doctor->user->name} for {$record->appointment_date} has been successfully updated.");
     }
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
 
     // protected function mutateFormDataBeforeFill(array $data): array
     // {
+    //     return $data;
     //     $user = Auth::user();
     //     $appointmentId = null;
 
@@ -48,16 +54,22 @@ class EditAppointment extends EditRecord
     //         $appointmentId = $user->patient->appointment->id ?? null;
     //     }
 
-    //     // Set the appointment_id in the data array
+
     //     $data['appointment_id'] = $appointmentId;
 
-    //     // Log or dump the data to check if it contains appointment_id
-    //     // dd($data);
+    //     dd($data);
 
     //     return $data;
     // }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if ($this->record) {
+            $data['id'] = $this->record->id ?? null;
+        }
 
-
+        // dd($data['appointment_id']);
+        return $data;
+    }
 
 }

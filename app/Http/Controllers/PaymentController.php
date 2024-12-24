@@ -94,17 +94,17 @@ class PaymentController extends Controller
         // Set Stripe API key
         // dd(env('STRIPE_SECRET'));
         Stripe::setApiKey(config('stripe.stripe_sk'));
-      
-        
+
+
         try {
             $appointmentId = $request->appointment_id;
             $appointment = Appointment::findOrFail($appointmentId);
 
-            
+
             $charge = \Stripe\Charge::create([
                 'source' => $request->stripeToken,
                 'description' => 'Payment for Appointment with '. $appointment->doctor->user->name,
-                'amount' => 100000,  // Amount in cents (e.g., $500.00)
+                'amount' => 100000,
                 'currency' => 'NPR',
             ]);
 
@@ -116,7 +116,7 @@ class PaymentController extends Controller
             $appointment->update([
                 'status' => 'confirmed'
             ]);
-    
+
             Notification::make()
                         ->title('Payment Successful')
                         ->body('The payment has been successfully completed.')
@@ -132,7 +132,7 @@ class PaymentController extends Controller
                 ->body('Received an invalid response from eSewa.')
                 ->danger()
                 ->send();
-                
+
             return redirect()->back();
         }
     }
