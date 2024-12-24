@@ -3,38 +3,39 @@
 namespace App\Filament\Resources;
 
 use Closure;
-use App\Filament\Resources\AppointmentResource\Pages;
-use App\Filament\Resources\AppointmentResource\RelationManagers;
-use App\Filament\Resources\AppointmentResource\RelationManagers\ReviewRelationManager;
-use App\Models\Appointment;
+use Carbon\Carbon;
+use Filament\Forms;
+use Filament\Tables;
 use App\Models\Doctor;
 use App\Models\Patient;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Notifications\Notification;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Get;
+use App\Models\Schedule;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use App\Models\Appointment;
+use Filament\Actions\Action;
+use Filament\Infolists\Infolist;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Card;
+use Filament\Forms\Components\Split;
+use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\TextArea;
+use Illuminate\Database\Eloquent\Model;
+use App\Rules\AppointmentValidationRule;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\TextArea;
-use App\Rules\AppointmentValidationRule;
-use Carbon\Carbon;
-use App\Models\Schedule;
-use Filament\Actions\Action;
-use Filament\Forms\Components\Actions;
-use Filament\Forms\Components\Card;
-use Filament\Forms\Components\Section;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\AppointmentResource\Pages;
 use Filament\Forms\Components\Select as ComponentsSelect;
-use Filament\Forms\Components\Split;
-use Filament\Infolists\Infolist;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
+use App\Filament\Resources\AppointmentResource\RelationManagers;
+use App\Filament\Resources\AppointmentResource\RelationManagers\ReviewRelationManager;
 
 class AppointmentResource extends Resource
 {
@@ -62,7 +63,6 @@ class AppointmentResource extends Resource
     {
         return static::getModel()::count() > 10 ? 'info' : 'success';
     }
-
 
 
     public static function getEloquentQuery(): Builder
@@ -97,8 +97,12 @@ class AppointmentResource extends Resource
             Split::make([
                 Section::make('Appointment')
                     ->schema([
+                        // Hidden::make('appointment_id'),
+
+
                         Select::make('patient_id')
                             ->label('Patient Name')
+                            ->rules('exists:patients,id')
                             // ->searchable()
                             ->native(false)
                             ->preload()
@@ -114,17 +118,18 @@ class AppointmentResource extends Resource
                             ->default(false),
 
                         Select::make('doctor_id')
+                            ->rules('exists:doctors,id')
                             ->columnSpanFull()
                             ->label('Doctor Name')
                             ->native(false)
                             ->reactive()
                             ->preload()
                             ->hidden(fn () => Auth::user()->role === 'doctor')
-                            // ->disabled(fn ($livewire) => Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
+                            ->disabled(fn ($livewire) => Auth::user()->role === 'patient' && $livewire instanceof \Filament\Resources\Pages\EditRecord)
                             ->options(
                         Doctor::where('status', 'available')
                                     ->whereHas('schedules', function ($query) {
-                                        $query->whereNotNull('id'); // Ensure the doctor has at least one schedule
+                                        $query->whereNotNull('id');
                                     })
                                     ->with('user')
                                     ->get()
@@ -155,6 +160,7 @@ class AppointmentResource extends Resource
                             ->label('Appointment Date')
                             ->columnSpanFull()
                             ->reactive()
+                            ->default($appointment->id ?? null)
                             ->minDate(now()->toDateString())
                             ->afterStateUpdated(function (callable $set, $state) {
                                 if ($state) {
@@ -162,7 +168,7 @@ class AppointmentResource extends Resource
                                     $set('day', $dayName); // Set the day field based on the selected date
                                 }
                             })
-                            ->required()
+                            // ->required()
                             ->rule(static function (Forms\Get $get) {
                                 $formState = [
                                     'start_time' => $get('start_time'),

@@ -16,6 +16,14 @@ class PieChart extends ChartWidget
 
     protected static ?string $maxHeight = '252px';
 
+    public static function canView(): bool
+    {
+        $user = Auth::user();
+
+        return $user->role === 'admin';
+    }
+
+
     protected function getData(): array
     {
         $user = Auth::user();
@@ -79,7 +87,8 @@ class PieChart extends ChartWidget
             ],
             'labels' => ['No Data Available'],
         ];
-    }
+
+        }
 
     protected function getType(): string
     {
@@ -94,13 +103,13 @@ class PieChart extends ChartWidget
             return 'User Distribution';
         }
 
-        if ($user->role === 'doctor') {
-            return 'Appointment Status Distribution (Doctor)';
-        }
+        // if ($user->role === 'doctor') {
+        //     return 'Appointment Status Distribution (Doctor)';
+        // }
 
-        if ($user->role === 'patient') {
-            return 'Appointment Status Distribution (Patient)';
-        }
+        // if ($user->role === 'patient') {
+        //     return 'Appointment Status Distribution (Patient)';
+        // }
 
         return 'Chart';
     }

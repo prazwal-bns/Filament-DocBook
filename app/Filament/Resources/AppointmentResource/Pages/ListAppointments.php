@@ -239,7 +239,7 @@ class ListAppointments extends ListRecords
                             ->title('Status Updated')
                             ->success()
                             ->send();
-                    }),
+                    })->hidden(fn () => Auth::user()->role === 'patient'),
 
             ]);
     }
