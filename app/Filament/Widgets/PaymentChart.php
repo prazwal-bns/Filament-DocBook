@@ -13,6 +13,8 @@ class PaymentChart extends ChartWidget
 
     protected static ?int $sort = 3;
 
+    protected static ?string $maxHeight = '252px';
+
     public static function canView(): bool
     {
         $user = Auth::user();
@@ -58,14 +60,34 @@ class PaymentChart extends ChartWidget
                 [
                     'data' => [$paidAmount, $unpaidAmount],
                     'backgroundColor' => ['#36A2EB', '#FF6384'],
+                    'label' => 'Amount Status', // Label for the dataset
                 ],
             ],
-            'labels' => ['Completed Payments', 'Pending Payments'],
+            'labels' => ['Completed Payments', 'Pending Payments'], // X-axis labels
+            'options' => [
+                'scales' => [
+                    'x' => [
+                        'title' => [
+                            'display' => true,
+                            'text' => 'Payment Status',  // X-axis label
+                        ],
+                    ],
+                    'y' => [
+                        'title' => [
+                            'display' => true,
+                            'text' => 'Amount',  // Y-axis label
+                        ],
+                        'ticks' => [
+                            'beginAtZero' => true,  // Ensure the Y-axis starts at zero
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
     protected function getType(): string
     {
-        return 'pie'; // Change this to 'pie' for a pie chart
+        return 'bar'; // Change this to 'bar' for a bar chart
     }
 }

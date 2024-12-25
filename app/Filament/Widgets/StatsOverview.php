@@ -24,16 +24,19 @@ class StatsOverview extends BaseWidget
                     ->description('Total number of users in the system')
                     ->descriptionIcon('heroicon-m-users')
                     ->chart([7, 2, 10, 3, 15, 4, 17])
+                    ->url(route('filament.admin.resources.users.index'))
                     ->color('lime'),
 
                 Stat::make('Total Patients', Patient::count())
                     ->description('Total number of patients')
+                    ->url(route('filament.admin.resources.users.index') . '?activeTab=Patients')
                     ->descriptionIcon('heroicon-m-user-group')
                     ->chart([7, 2, 10, 3, 15, 4, 17])
                     ->color('warning'),
 
                 Stat::make('Total Doctors', Doctor::count())
                     ->description('Total number of doctors')
+                    ->url(route('filament.admin.resources.users.index') . '?activeTab=Doctors')
                     ->descriptionIcon('heroicon-m-user')
                     ->chart([7, 2, 10, 3, 15, 4, 17])
                     ->color('teal'),

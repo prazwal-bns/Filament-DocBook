@@ -207,7 +207,9 @@ class ListAppointments extends ListRecords
                     ->label('More actions')
                     ->icon('heroicon-m-information-circle')
                     ->size(ActionSize::Small)
-                    ->color('violet')
+                    // ->color('violet')
+                    ->color('my-color')
+                    ->dropdownPlacement('top-start')
                     ->button(),
 
 

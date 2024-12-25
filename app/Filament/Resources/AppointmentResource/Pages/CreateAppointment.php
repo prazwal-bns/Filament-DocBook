@@ -25,7 +25,7 @@ class CreateAppointment extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
-    
+
     protected function getCreatedNotification(): Notification
     {
         $record = $this->record;
@@ -55,6 +55,7 @@ class CreateAppointment extends CreateRecord
 
     public function mutateFormDataBeforeCreate(array $data): array
     {
+        dd(Auth::user()->patient);
         if (Auth::user()->role === 'patient') {
             $data['patient_id'] = Auth::user()->patient->id;
         }

@@ -182,7 +182,8 @@ class PaymentResource extends Resource
                 ->icon('heroicon-m-credit-card')
                 ->dropdownPlacement('top-start')
                 ->size(ActionSize::Small)
-                ->color('purple')
+                // ->color('purple')
+                ->color('my-btn')
                 ->visible(fn($record) => (Auth::user()->role === 'admin' || Auth::user()->role ==='patient'))
                 ->button(),
 

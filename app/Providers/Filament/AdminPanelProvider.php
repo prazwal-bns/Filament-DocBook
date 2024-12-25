@@ -55,7 +55,9 @@ class AdminPanelProvider extends PanelProvider
                 'rose' => Color::Rose,
                 'indigo' => Color::Indigo,
                 'violet' => Color::Violet,
-                'fuchsia' => Color::Fuchsia
+                'fuchsia' => Color::Fuchsia,
+                'my-btn' => '#6d02c4',
+                'my-color' => '#4b0480',
             ])
             ->navigationGroups([
                 'Manage Appointments',
