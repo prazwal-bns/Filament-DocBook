@@ -198,7 +198,21 @@ class AppointmentResource extends Resource
                             ->reactive()
                             ->seconds(false)
                             ->after('start_time')
-                            ->required(),
+                            ->required()
+                            ->rule(static function (Forms\Get $get, Forms\Components\Component $component): Closure {
+                                return static function (string $attribute, $value, Closure $fail) use ($get) {
+                                    $startTime = strtotime($get('start_time'));
+                                    $endTime = strtotime($value);
+
+                                    if ($startTime && $endTime) {
+                                        $durationInMinutes = ($endTime - $startTime) / 60;
+
+                                        if ($durationInMinutes < 30) {
+                                            $fail("The duration between Start Time and End Time must be at least 30 minutes.");
+                                        }
+                                    }
+                                };
+                            }),
 
                         Select::make('status')
                             ->options([

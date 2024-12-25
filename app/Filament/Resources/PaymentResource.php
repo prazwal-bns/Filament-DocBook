@@ -155,7 +155,7 @@ class PaymentResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-
+            ->defaultPaginationPageOption(5)
             ->actions([
                 ActionGroup::make([
                     Action::make('Pay with eSewa')

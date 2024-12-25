@@ -222,6 +222,7 @@ class ReviewResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
             ])
+            ->defaultPaginationPageOption(5)
             ->filters([
                 // Add filters here if needed
             ])

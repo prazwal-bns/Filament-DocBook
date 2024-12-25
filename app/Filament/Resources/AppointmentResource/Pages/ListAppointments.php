@@ -91,6 +91,7 @@ class ListAppointments extends ListRecords
                     ])
                     ->sortable(),
             ])
+            ->defaultPaginationPageOption(5)
             ->defaultSort('appointment_date')
             ->filters([
                 Filter::make('appointment_date')
@@ -231,17 +232,32 @@ class ListAppointments extends ListRecords
                     ])
                     ->action(function ($records, $data) {
                         // Update the status for selected records
+                        // foreach ($records as $record) {
+                        //     $record->update([
+                        //         'status' => $data['status'],
+                        //     ]);
+                        // }
+
                         foreach ($records as $record) {
-                            $record->update([
-                                'status' => $data['status'],
-                            ]);
+                            if ($record->status === 'pending' && $record->payment->payment_status !== 'paid') {
+                                Notification::make()
+                                    ->title('Payment Required')
+                                    ->body("Pending appointments can't be updated unless payment has been made.")
+                                    ->danger()
+                                    ->send();
+                            } else {
+                                // Update the status if the payment is made or if not in 'pending' status
+                                $record->update([
+                                    'status' => $data['status'],
+                                ]);
+                            }
                         }
 
                         Notification::make()
                             ->title('Status Updated')
                             ->success()
                             ->send();
-                    })->hidden(fn () => Auth::user()->role === 'patient'),
+                    })->hidden(fn() => Auth::user()->role === 'patient'),
 
             ]);
     }
@@ -294,7 +310,6 @@ class ListAppointments extends ListRecords
                 )
                 ->icon('heroicon-o-shield-check')
                 ->badge(
-                    // Filter by status and also by the user’s role
                     Appointment::where('status', 'completed')
                         ->when($user->role === 'patient', function ($query) use ($user) {
                             $query->where('patient_id', $user->patient->id);
@@ -302,7 +317,7 @@ class ListAppointments extends ListRecords
                         ->when($user->role === 'doctor', function ($query) use ($user) {
                             $query->where('doctor_id', $user->doctor->id);
                         })
-                        ->count() // Count completed appointments for the logged-in user
+                        ->count()
                 )
                 ->extraAttributes(['class' => 'flex justify-end']),
         ];

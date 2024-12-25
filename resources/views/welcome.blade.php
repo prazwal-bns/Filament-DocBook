@@ -201,11 +201,11 @@
     </footer>
 </body>
 </html>
+{{-- <div class="flex space-x-4">
+    <a href="{{ route('filament.admin.auth.login') }}"
+        class="px-6 py-3 bg-white text-blue-600 font-medium rounded-lg shadow-md hover:bg-blue-50">
+        Login
+    </a>
+</div> --}}
 
-            
-                    <div class="flex space-x-4">
-                        <a href="{{ route('filament.admin.auth.login') }}" 
-                            class="px-6 py-3 bg-white text-blue-600 font-medium rounded-lg shadow-md hover:bg-blue-50">
-                            Login
-                        </a>
-                    </div>
+

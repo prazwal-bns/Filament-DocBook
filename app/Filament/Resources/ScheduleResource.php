@@ -157,6 +157,8 @@ class ScheduleResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->searchable(),
             ])
+            ->paginated([7, 10, 25, 50, 100, 'all'])
+            ->defaultPaginationPageOption(7)
             ->filters([
                 //
             ])

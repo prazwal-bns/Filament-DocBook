@@ -34,8 +34,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->registration()
             ->login()
-            ->font('Inter')
+            // ->font('Inter')
+            ->font('Roboto')
             ->brandName('DocBook')
+            ->sidebarCollapsibleOnDesktop(true)
             ->favicon(asset('favicon.png'))
             ->colors([
                 'danger' => Color::Red,

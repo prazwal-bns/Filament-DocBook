@@ -140,6 +140,7 @@ class UserResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultPaginationPageOption(5)
             ->filters([
                 //
             ])
