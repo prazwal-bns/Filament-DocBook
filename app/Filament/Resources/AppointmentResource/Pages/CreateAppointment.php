@@ -41,13 +41,22 @@ class CreateAppointment extends CreateRecord
     {
         $record = parent::handleRecordCreation($data);
 
-        $price = 1000;
+        $startTime = strtotime($data['start_time']);
+        $endTime = strtotime($data['end_time']);
+        $durationInMinutes = ($endTime - $startTime) / 60;
+
+        // Determine the price (Rs. 1000 for 30 minutes, proportional for other durations)
+        $basePrice = 1000;
+        $price = ($durationInMinutes / 30) * $basePrice;
+
+        // Round the price to the nearest whole number
+        $roundedPrice = round($price);
 
         // Create the payment record
         Payment::create([
             'appointment_id' => $record->id,
             'payment_status' => 'unpaid',
-            'amount' => $price,
+            'amount' => $roundedPrice,
         ]);
 
         return $record;
@@ -55,7 +64,6 @@ class CreateAppointment extends CreateRecord
 
     public function mutateFormDataBeforeCreate(array $data): array
     {
-        dd(Auth::user()->patient);
         if (Auth::user()->role === 'patient') {
             $data['patient_id'] = Auth::user()->patient->id;
         }

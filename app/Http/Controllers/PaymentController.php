@@ -100,11 +100,13 @@ class PaymentController extends Controller
             $appointmentId = $request->appointment_id;
             $appointment = Appointment::findOrFail($appointmentId);
 
+            $payment = $appointment->payment;
+            $amount = $payment->amount;
 
             $charge = \Stripe\Charge::create([
                 'source' => $request->stripeToken,
                 'description' => 'Payment for Appointment with '. $appointment->doctor->user->name,
-                'amount' => 100000,
+                'amount' => $amount * 100,
                 'currency' => 'NPR',
             ]);
 

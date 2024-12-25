@@ -8,6 +8,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Support\Facades\Auth;
 
 class UpcomingAppointments extends BaseWidget
 {
@@ -21,10 +22,19 @@ class UpcomingAppointments extends BaseWidget
         // Get the current date
         $today = now()->toDateString();
 
+        $user = Auth::user();
+
         return $table
             ->query(
                 Appointment::query()
                     ->where('appointment_date', '>=', $today)
+                    ->where('status', '!=', 'completed')
+                    ->when($user->role === 'doctor', function ($query) use ($user) {
+                        $query->where('doctor_id', $user->doctor->id);
+                    })
+                    ->when($user->role === 'patient', function ($query) use ($user) {
+                        $query->where('patient_id', $user->patient->id);
+                    })
                     ->orderBy('appointment_date', 'asc')
                     ->with(['doctor', 'patient'])
             )
