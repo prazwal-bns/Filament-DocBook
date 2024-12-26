@@ -6,10 +6,13 @@ use App\Filament\Resources\SpecializationResource\Pages;
 use App\Filament\Resources\SpecializationResource\RelationManagers;
 use App\Filament\Resources\SpecializationResource\RelationManagers\DoctorsRelationManager;
 use App\Models\Specialization;
+// use Filament\Actions\DeleteAction;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -68,7 +71,18 @@ class SpecializationResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                ->before(function (DeleteAction $action, $record) {
+                    if ($record->doctors()->exists()) {
+                        Notification::make()
+                            ->title('Deletion Failed')
+                            ->body('This specialization cannot be deleted because it has associated doctors.')
+                            ->danger()
+                            ->send();
+
+                        $action->cancel();
+                    }
+                }),
             ])
             ->bulkActions([
                 // Tables\Actions\BulkActionGroup::make([

@@ -26,35 +26,35 @@ class ListSchedules extends ListRecords
     }
 
 
-    public function getTabs(): array
-    {
-        $user = Auth::user();
+    // public function getTabs(): array
+    // {
+    //     $user = Auth::user();
 
-        if ($user->role !== 'admin') {
-            return [];
-        }
+    //     if ($user->role !== 'admin') {
+    //         return [];
+    //     }
 
-        $doctors = Doctor::with('user')->get();
+    //     $doctors = Doctor::with('user')->get();
 
-        $tabs = [];
+    //     $tabs = [];
 
-        foreach ($doctors as $doctor) {
-            $doctorName = $doctor->user->name;
+    //     foreach ($doctors as $doctor) {
+    //         $doctorName = $doctor->user->name;
 
-            $tabs["{$doctorName}"] = Tab::make()
-                ->icon('heroicon-o-user')
-                ->label("{$doctorName}")
-                ->modifyQueryUsing(fn (Builder $query) =>
-                    $query->where('doctor_id', $doctor->id)
-                )
-                ->badge(
-                    Schedule::where('doctor_id', $doctor->id)
-                        ->count()
-                );
-        }
+    //         $tabs["{$doctorName}"] = Tab::make()
+    //             ->icon('heroicon-o-user')
+    //             ->label("{$doctorName}")
+    //             ->modifyQueryUsing(fn (Builder $query) =>
+    //                 $query->where('doctor_id', $doctor->id)
+    //             )
+    //             ->badge(
+    //                 Schedule::where('doctor_id', $doctor->id)
+    //                     ->count()
+    //             );
+    //     }
 
-        return $tabs;
-    }
+    //     return $tabs;
+    // }
 
 
 

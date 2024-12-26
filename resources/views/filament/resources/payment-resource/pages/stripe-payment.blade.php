@@ -67,6 +67,7 @@
                     <p><span class="bold">Appointment:</span> Appointment with <span class="doctor">{{ $appointmentDetails->doctor->user->name }}</span></p>
                     <p><span class="bold">Date:</span> {{ $appointmentDetails->appointment_date }}</p>
                     <p><span class="bold">Appointment Time:</span> From <span class="time">{{ $appointmentDetails->start_time }}</span> to <span class="time">{{ $appointmentDetails->end_time }}</span></p>
+                    <p><span class="bold">Amount:</span>Rs. {{ $appointmentDetails->payment->amount }}</p>
                 </div>
 
                 <form action="{{ route('stripe.post') }}" method="POST" id="payment-form">

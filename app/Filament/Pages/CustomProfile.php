@@ -72,9 +72,58 @@ class CustomProfile extends Page
     }
 
 
-    public function update(): void
+    // public function update()
+    // {
+    //     $user = User::find(Auth::id());
+    //     $user->update($this->data);
+
+    //     if ($user->role == 'patient') {
+    //         $patient = $user->patient ?? new Patient(['user_id' => $user->id]);
+    //         $patient->update([
+    //             'gender' => $this->extraData['gender'],
+    //             'dob' => $this->extraData['dob'],
+    //         ]);
+    //     } elseif ($user->role == 'doctor') {
+    //         $doctor = $user->doctor ?? new Doctor(['user_id' => $user->id]);
+    //         $doctor->update([
+    //             // 'specialization_id' => $this->extraData['specialization_id'],
+    //             'bio' => $this->extraData['bio'],
+    //         ]);
+    //     }
+
+    //     Notification::make()
+    //         ->title('Profile updated successfully !!')
+    //         ->icon('heroicon-o-user-circle')
+    //         ->success()
+    //         ->send();
+
+    //     return redirect()->route('filament.admin.pages.view-profile');
+    // }
+
+    public function update()
     {
         $user = User::find(Auth::id());
+
+        // Make email case-insensitive when updating
+        if ($this->data['email']) {
+            // Ensure the email is unique, ignoring case sensitivity
+            $existingUser = User::whereRaw('LOWER(email) = ?', [strtolower($this->data['email'])])
+                                ->where('id', '!=', $user->id) // Ensure the current user's email is not checked
+                                ->exists();
+
+            if ($existingUser) {
+                // If the email already exists (ignoring case), throw an error
+                Notification::make()
+                    ->title('This email has already been taken.')
+                    ->icon('heroicon-o-user-circle')
+                    ->danger()
+                    ->send();
+
+                return redirect()->back()->withInput();
+            }
+        }
+
+        // Update the user's general data
         $user->update($this->data);
 
         if ($user->role == 'patient') {
@@ -86,7 +135,6 @@ class CustomProfile extends Page
         } elseif ($user->role == 'doctor') {
             $doctor = $user->doctor ?? new Doctor(['user_id' => $user->id]);
             $doctor->update([
-                // 'specialization_id' => $this->extraData['specialization_id'],
                 'bio' => $this->extraData['bio'],
             ]);
         }
@@ -96,7 +144,11 @@ class CustomProfile extends Page
             ->icon('heroicon-o-user-circle')
             ->success()
             ->send();
+
+        return redirect()->route('filament.admin.pages.view-profile');
     }
+
+
 
     public function updateDoctorStatus(): void
     {

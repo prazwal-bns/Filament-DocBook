@@ -22,7 +22,7 @@ class CreateUser extends CreateRecord
         if ($record->role === 'patient') {
             Patient::create([
                 'user_id' => $record->id,
-                'gender' => $data['gender'],
+                'gender' => $data['gender'] ?? null,
             ]);
         } elseif ($record->role === 'doctor') {
             $doctor = Doctor::create([

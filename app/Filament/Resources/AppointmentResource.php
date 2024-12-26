@@ -328,8 +328,8 @@ class AppointmentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            ReviewRelationManager::class,
-            PaymentRelationManager::class
+            PaymentRelationManager::class,
+            ReviewRelationManager::class
         ];
     }
 

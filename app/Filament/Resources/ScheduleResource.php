@@ -6,6 +6,7 @@ use App\Filament\Resources\ScheduleResource\Pages;
 use App\Filament\Resources\ScheduleResource\RelationManagers;
 use App\Models\Appointment;
 use App\Models\Doctor;
+use Filament\Resources\Components\Tab;
 use App\Models\Schedule;
 use App\Models\User;
 use Filament\Forms;
@@ -135,6 +136,36 @@ class ScheduleResource extends Resource
             ]);
     }
 
+    public static function getTabs(): array
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'admin') {
+            return [];
+        }
+
+        $doctors = Doctor::with('user')->get();
+
+        $tabs = [];
+
+        foreach ($doctors as $doctor) {
+            $doctorName = $doctor->user->name;
+
+            $tabs["{$doctorName}"] = Tab::make()
+                ->icon('heroicon-o-user')
+                ->label("{$doctorName}")
+                ->modifyQueryUsing(fn (Builder $query) =>
+                    $query->where('doctor_id', $doctor->id)
+                )
+                ->badge(
+                    Schedule::where('doctor_id', $doctor->id)
+                        ->count()
+                );
+        }
+
+        return $tabs;
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -168,14 +199,19 @@ class ScheduleResource extends Resource
                 //     ->label('Doctor')
                 //     ->placeholder('Select Doctor'),
 
-                // SelectFilter::make('doctor_id')
-                //     ->options(function () {
-                //         $doctors = Doctor::with('user')->get();
-                //         // dd($doctors);
-                //         return $doctors->pluck('user.name', 'id')->toArray();
-                //     })
-                //     ->label('Doctor')
-                //     ->placeholder('Select Doctor'),
+                SelectFilter::make('doctor_id')
+                    ->options(function () {
+                        $doctors = Doctor::with('user')->get();
+                        return $doctors->pluck('user.name', 'id')->toArray();
+                    })
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->where('doctor_id', $data['value']);
+                        }
+                    })
+                    ->label('Doctor')
+                    ->placeholder('Select Doctor')
+
 
             ])
 

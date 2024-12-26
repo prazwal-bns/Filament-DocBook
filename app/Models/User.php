@@ -80,7 +80,7 @@ class User extends Authenticatable implements HasAvatar
     protected static function booted(): void
     {
         static::creating(function ($user) {
-            if ($user->role !== 'patient') {
+            if (empty($user->role)) {
                 $user->role = 'patient';
             }
 

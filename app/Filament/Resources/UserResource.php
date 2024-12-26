@@ -15,8 +15,10 @@ use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -53,7 +55,17 @@ class UserResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('email')
                     ->email()
-                    ->required(),
+                    ->unique('users', 'email', null, 'ignoreCase')
+                    ->required()
+                    ->rules(function () {
+                        return [
+                            function ($attribute, $value, $fail) {
+                                if (\App\Models\User::whereRaw('LOWER(email) = ?', [strtolower($value)])->exists()) {
+                                    $fail('This email has already been taken.');
+                                }
+                            },
+                        ];
+                    }),
 
                 Forms\Components\Select::make('role')
                 ->options([
@@ -147,7 +159,26 @@ class UserResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                ->before(function (DeleteAction $action, $record) {
+                    if ($record->role === 'doctor') {
+                        $hasUpcomingAppointments = $record->doctor?->appointments()
+                            ->where('date', '>=', now())
+                            ->where('status', '!=', 'completed')
+                            ->exists();
+
+                        if ($hasUpcomingAppointments) {
+                            Notification::make()
+                                ->title('Deletion Failed')
+                                ->body('This user cannot be deleted because this doctor currenlty has upcoming appointments.')
+                                ->danger()
+                                ->send();
+
+                            // Halt the deletion process
+                            $action->cancel();
+                        }
+                    }
+                }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
