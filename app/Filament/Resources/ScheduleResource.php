@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Closure;
-
+use Filament\Tables\Filters\SelectFilter;
 
 class ScheduleResource extends Resource
 {
@@ -159,9 +159,26 @@ class ScheduleResource extends Resource
             ])
             ->paginated([7, 10, 25, 50, 100, 'all'])
             ->defaultPaginationPageOption(7)
+
             ->filters([
-                //
+                // SelectFilter::make('doctor_id')
+                //     ->options(function () {
+                //         return Doctor::all()->pluck('user.name', 'id')->toArray();
+                //     })
+                //     ->label('Doctor')
+                //     ->placeholder('Select Doctor'),
+
+                // SelectFilter::make('doctor_id')
+                //     ->options(function () {
+                //         $doctors = Doctor::with('user')->get();
+                //         // dd($doctors);
+                //         return $doctors->pluck('user.name', 'id')->toArray();
+                //     })
+                //     ->label('Doctor')
+                //     ->placeholder('Select Doctor'),
+
             ])
+
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),

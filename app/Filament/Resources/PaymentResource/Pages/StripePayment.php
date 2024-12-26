@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PaymentResource\Pages;
 
 use App\Filament\Resources\PaymentResource;
+use App\Models\Appointment;
 use Filament\Resources\Pages\Page;
 use Illuminate\Support\Facades\Crypt;
 
@@ -17,11 +18,13 @@ class StripePayment extends Page
     protected static ?string $slug = 'stripe-payment';
 
     public $appointmentId;
+    public $appointmentDetails;
 
     public function mount($appointmentId)
     {
         try {
             $this->appointmentId = Crypt::decryptString($appointmentId);
+            $this->appointmentDetails = Appointment::findOrFail($this->appointmentId);
         } catch (\Exception $e) {
             abort(403, 'Invalid or expired appointment ID.');
         }

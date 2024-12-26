@@ -134,6 +134,7 @@ class ListAppointments extends ListRecords
                         return Doctor::all()->pluck('user.name', 'id')->toArray();
                     })
                     ->label('Doctor')
+                    ->hidden(fn()=> Auth::user()->role === 'doctor')
                     ->placeholder('Select Doctor'),
             ])
             ->actions([

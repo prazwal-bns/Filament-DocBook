@@ -25,6 +25,7 @@ class ListSchedules extends ListRecords
         ];
     }
 
+
     public function getTabs(): array
     {
         $user = Auth::user();
@@ -54,5 +55,8 @@ class ListSchedules extends ListRecords
 
         return $tabs;
     }
+
+
+
 
 }

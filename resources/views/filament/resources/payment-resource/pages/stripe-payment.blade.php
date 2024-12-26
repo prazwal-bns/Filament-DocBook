@@ -1,5 +1,56 @@
 <x-filament::page>
     <style>
+         .appointment-info {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .appointment-info h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .appointment-info p {
+            font-size: 1rem;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .appointment-info .bold {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .payment-btn {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1.2rem;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .payment-btn:hover {
+            background-color: #45a049;
+        }
+
+        .appointment-info .doctor {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .appointment-info .time {
+            font-style: italic;
+            color: #9ca3af;
+        }
+
         #card-errors {
             color: #fa755a; /* Red color for errors */
             font-size: 14px; /* Smaller font size */
@@ -10,6 +61,14 @@
 
     <div class="grid flex-1 auto-cols-fr gap-y-10" >
             <div class="p-6 bg-white rounded-lg shadow-md">
+                <div class="appointment-info">
+                    <h3>Appointment Details</h3>
+                    <p><span class="bold">Patient Name:</span> {{ $appointmentDetails->patient->user->name }}</p>
+                    <p><span class="bold">Appointment:</span> Appointment with <span class="doctor">{{ $appointmentDetails->doctor->user->name }}</span></p>
+                    <p><span class="bold">Date:</span> {{ $appointmentDetails->appointment_date }}</p>
+                    <p><span class="bold">Appointment Time:</span> From <span class="time">{{ $appointmentDetails->start_time }}</span> to <span class="time">{{ $appointmentDetails->end_time }}</span></p>
+                </div>
+
                 <form action="{{ route('stripe.post') }}" method="POST" id="payment-form">
                     @csrf
 

@@ -7,6 +7,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use App\Models\Schedule;
 use App\Models\Appointment;
 use Carbon\Carbon;
+use Filament\Notifications\Notification;
 
 class AppointmentValidationRule implements ValidationRule
 {
@@ -130,6 +131,13 @@ class AppointmentValidationRule implements ValidationRule
             $schedule = $appointments->map(function ($appointment) {
                 return Carbon::parse($appointment->start_time)->format('H:i') . ' - ' . Carbon::parse($appointment->end_time)->format('H:i');
             })->implode(', ');
+
+            Notification::make()
+                ->title('Cannot update status')
+                ->body("The selected doctor is already booked for this time slot. He/she is not available during: {$schedule}")
+                ->icon('heroicon-o-exclamation-circle')
+                ->danger()
+                ->send();
 
             $fail("The selected doctor is already booked for this time slot. He/she is not available during: {$schedule}");
         }

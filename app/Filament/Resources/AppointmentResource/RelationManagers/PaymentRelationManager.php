@@ -14,6 +14,7 @@ use Filament\Support\Enums\ActionSize;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Columns\BadgeColumn;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 
 class PaymentRelationManager extends RelationManager
 {
@@ -101,8 +102,11 @@ class PaymentRelationManager extends RelationManager
 
                     Action::make('Pay via Stripe')
                         ->action(function ($record) {
-                            // Perform any additional logic here before redirecting
-                            return redirect()->route('filament.admin.resources.payments.stripe', ['appointmentId' => $record->id]);
+                            $encryptedAppointmentId = Crypt::encryptString($record->appointment_id);
+
+                            return redirect()->route('filament.admin.resources.payments.stripe', ['appointmentId' => $encryptedAppointmentId]);
+
+                            // return redirect()->route('filament.admin.resources.payments.stripe');
                         })
                         ->icon('heroicon-o-currency-dollar')
                         ->visible(fn ($record) => $record->payment_status !== 'paid')
