@@ -6,6 +6,8 @@ use App\Models\Appointment;
 use App\Models\Payment;
 use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Stripe\Exception\CardException;
 use Stripe\Stripe;
 use Xentixar\EsewaSdk\Esewa;
@@ -97,8 +99,23 @@ class PaymentController extends Controller
 
 
         try {
-            $appointmentId = $request->appointment_id;
+            $appointmentId = Crypt::decryptString($request->appointment_id);
             $appointment = Appointment::findOrFail($appointmentId);
+
+            $user = Auth::user();
+
+            if ($user->role === 'patient') {
+                $patient = $user->patient;
+                if ($appointment->patient_id !== $patient->id) {
+                    Notification::make()
+                        ->title('Unauthorized Action')
+                        ->body('You are not authorized to make payments for this appointment.')
+                        ->danger()
+                        ->send();
+
+                    return redirect()->back();
+                }
+            }
 
             $payment = $appointment->payment;
             $amount = $payment->amount;
@@ -131,7 +148,7 @@ class PaymentController extends Controller
         } catch (CardException $e) {
             Notification::make()
                 ->title('Invalid Response')
-                ->body('Received an invalid response from eSewa.')
+                ->body('Received an invalid response from Stripe.')
                 ->danger()
                 ->send();
 

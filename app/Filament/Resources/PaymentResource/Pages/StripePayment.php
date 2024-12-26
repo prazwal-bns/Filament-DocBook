@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PaymentResource\Pages;
 
 use App\Filament\Resources\PaymentResource;
 use Filament\Resources\Pages\Page;
+use Illuminate\Support\Facades\Crypt;
 
 class StripePayment extends Page
 {
@@ -20,7 +21,7 @@ class StripePayment extends Page
     public function mount($appointmentId)
     {
         try {
-            $this->appointmentId = $appointmentId;
+            $this->appointmentId = Crypt::decryptString($appointmentId);
         } catch (\Exception $e) {
             abort(403, 'Invalid or expired appointment ID.');
         }

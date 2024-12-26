@@ -36,6 +36,7 @@ use App\Filament\Resources\AppointmentResource\Pages;
 use Filament\Forms\Components\Select as ComponentsSelect;
 use App\Filament\Resources\AppointmentResource\RelationManagers;
 use App\Filament\Resources\AppointmentResource\RelationManagers\ReviewRelationManager;
+use App\Filament\Resources\AppointmentResource\RelationManagers\PaymentRelationManager;
 
 class AppointmentResource extends Resource
 {
@@ -327,7 +328,8 @@ class AppointmentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            ReviewRelationManager::class
+            ReviewRelationManager::class,
+            PaymentRelationManager::class
         ];
     }
 

@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\PaymentResource\RelationManagers;
 use App\Filament\Resources\PaymentResource\RelationManagers\AppointmentRelationManager;
 use Filament\Infolists\Components\Section;
+use Illuminate\Support\Facades\Crypt;
 
 class PaymentResource extends Resource
 {
@@ -167,16 +168,41 @@ class PaymentResource extends Resource
                         // ->button()
                         ->color('success')
                         ->label('Pay via eSewa')
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirmation Required')
+                        ->modalSubheading('Are you sure you want to make the payment via E-Sewa?')
                         ->tooltip('Click to pay via eSewa'),
 
+                    // Action::make('Pay via Stripe')
+                    //     ->url(fn ($record) => route('filament.admin.resources.payments.stripe', ['appointmentId' => $record->id]))
+                    //     ->icon('heroicon-o-currency-dollar')
+                    //     ->visible(fn ($record) => $record->payment_status !== 'paid')
+                    //     // ->button()
+                    //     ->color('secondary')
+                    //     ->requiresConfirmation()
+                    //     ->modalHeading('Confirmation Required')
+                    //     ->modalSubheading('Are you sure you want to make the payment via Stripe?')
+                    //     ->label('Pay via Stripe')
+                    //     ->tooltip('Click to pay via Stripe')
+
+
                     Action::make('Pay via Stripe')
-                        ->url(fn ($record) => route('filament.admin.resources.payments.stripe', ['appointmentId' => $record->id]))
+                        ->action(function ($record) {
+                            $encryptedAppointmentId = Crypt::encryptString($record->appointment_id);
+
+                            return redirect()->route('filament.admin.resources.payments.stripe', ['appointmentId' => $encryptedAppointmentId]);
+
+                            // return redirect()->route('filament.admin.resources.payments.stripe');
+                        })
                         ->icon('heroicon-o-currency-dollar')
                         ->visible(fn ($record) => $record->payment_status !== 'paid')
-                        // ->button()
                         ->color('secondary')
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirmation Required')
+                        ->modalSubheading('Are you sure you want to make the payment via Stripe?')
                         ->label('Pay via Stripe')
                         ->tooltip('Click to pay via Stripe')
+
                     ])
                 ->label('Make Payment')
                 ->icon('heroicon-m-credit-card')

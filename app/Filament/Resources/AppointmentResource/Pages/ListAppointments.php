@@ -145,8 +145,6 @@ class ListAppointments extends ListRecords
                     ->iconButton()
                     ->tooltip('Download Appointment Details'),
 
-
-
                 Tables\Actions\ViewAction::make()->hidden(true),
                 Tables\Actions\EditAction::make()->visible(fn($record) => $record->status === 'pending')->iconButton(),
                 Tables\Actions\DeleteAction::make()
@@ -218,46 +216,46 @@ class ListAppointments extends ListRecords
             ->bulkActions([
 
                 // Bulk Action for updating the status of selected records
-                BulkAction::make('updateStatusBulk')
-                    ->label('Update Status for Selected')
-                    ->form([
-                        Select::make('status')
-                            ->label('Select Status')
-                            ->options([
-                                // 'pending' => 'Pending',
-                                'confirmed' => 'Confirmed',
-                                'completed' => 'Completed',
-                            ])
-                            ->required(),
-                    ])
-                    ->action(function ($records, $data) {
-                        // Update the status for selected records
-                        // foreach ($records as $record) {
-                        //     $record->update([
-                        //         'status' => $data['status'],
-                        //     ]);
-                        // }
+                // BulkAction::make('updateStatusBulk')
+                //     ->label('Update Status for Selected')
+                //     ->form([
+                //         Select::make('status')
+                //             ->label('Select Status')
+                //             ->options([
+                //                 // 'pending' => 'Pending',
+                //                 'confirmed' => 'Confirmed',
+                //                 'completed' => 'Completed',
+                //             ])
+                //             ->required(),
+                //     ])
+                //     ->action(function ($records, $data) {
+                //         // Update the status for selected records
+                //         // foreach ($records as $record) {
+                //         //     $record->update([
+                //         //         'status' => $data['status'],
+                //         //     ]);
+                //         // }
 
-                        foreach ($records as $record) {
-                            if ($record->status === 'pending' && $record->payment->payment_status !== 'paid') {
-                                Notification::make()
-                                    ->title('Payment Required')
-                                    ->body("Pending appointments can't be updated unless payment has been made.")
-                                    ->danger()
-                                    ->send();
-                            } else {
-                                // Update the status if the payment is made or if not in 'pending' status
-                                $record->update([
-                                    'status' => $data['status'],
-                                ]);
-                            }
-                        }
+                //         foreach ($records as $record) {
+                //             if ($record->status === 'pending' && $record->payment->payment_status !== 'paid') {
+                //                 Notification::make()
+                //                     ->title('Payment Required')
+                //                     ->body("Pending appointments can't be updated unless payment has been made.")
+                //                     ->danger()
+                //                     ->send();
+                //             } else {
+                //                 // Update the status if the payment is made or if not in 'pending' status
+                //                 $record->update([
+                //                     'status' => $data['status'],
+                //                 ]);
+                //             }
+                //         }
 
-                        Notification::make()
-                            ->title('Status Updated')
-                            ->success()
-                            ->send();
-                    })->hidden(fn() => Auth::user()->role === 'patient'),
+                //         Notification::make()
+                //             ->title('Status Updated')
+                //             ->success()
+                //             ->send();
+                //     })->hidden(fn() => Auth::user()->role === 'patient'),
 
             ]);
     }
