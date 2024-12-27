@@ -76,10 +76,16 @@ class ListAppointments extends ListRecords
                         ->searchable(),
 
                 TextColumn::make('start_time')
-                    ->label('Start Time'),
+                    ->label('Start Time')
+                    ->formatStateUsing(function ($state) {
+                        return Carbon::parse($state)->format('g:i A'); // 12-hour format with AM/PM
+                    }),
 
                 TextColumn::make('end_time')
-                    ->label('End Time'),
+                    ->label('End Time')
+                    ->formatStateUsing(function ($state) {
+                        return Carbon::parse($state)->format('g:i A'); // 12-hour format with AM/PM
+                    }),
 
 
                 BadgeColumn::make('status')
@@ -138,13 +144,22 @@ class ListAppointments extends ListRecords
                     ->placeholder('Select Doctor'),
             ])
             ->actions([
+                // Action::make('Download')
+                //     ->url(fn ($record) => route('appointments.downloadPdf', ['appointmentId' => $record->id]))
+                //     ->icon('heroicon-o-arrow-down-tray')
+                //     ->visible(fn ($record) => $record->payment_status !== 'paid')
+                //     ->color('fuchsia')
+                //     ->iconButton()
+                //     ->tooltip('Download Appointment Details'),
+
                 Action::make('Download')
                     ->url(fn ($record) => route('appointments.downloadPdf', ['appointmentId' => $record->id]))
                     ->icon('heroicon-o-arrow-down-tray')
                     ->visible(fn ($record) => $record->payment_status !== 'paid')
                     ->color('fuchsia')
                     ->iconButton()
-                    ->tooltip('Download Appointment Details'),
+                    ->tooltip('Download Appointment Details')
+                    ->openUrlInNewTab(),
 
                 Tables\Actions\ViewAction::make()->hidden(true),
                 Tables\Actions\EditAction::make()->visible(fn($record) => $record->status === 'pending')->iconButton(),

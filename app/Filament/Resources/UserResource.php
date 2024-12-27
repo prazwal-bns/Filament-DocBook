@@ -55,17 +55,17 @@ class UserResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('email')
                     ->email()
-                    ->unique('users', 'email', null, 'ignoreCase')
-                    ->required()
-                    ->rules(function () {
-                        return [
-                            function ($attribute, $value, $fail) {
-                                if (\App\Models\User::whereRaw('LOWER(email) = ?', [strtolower($value)])->exists()) {
-                                    $fail('This email has already been taken.');
-                                }
-                            },
-                        ];
-                    }),
+                    // ->unique('users', 'email', null, 'ignoreCase')
+                    ->required(),
+                    // ->rules(function () {
+                    //     return [
+                    //         function ($attribute, $value, $fail) {
+                    //             if (\App\Models\User::whereRaw('LOWER(email) = ?', [strtolower($value)])->exists()) {
+                    //                 $fail('This email has already been taken.');
+                    //             }
+                    //         },
+                    //     ];
+                    // }),
 
                 Forms\Components\Select::make('role')
                 ->options([
@@ -74,6 +74,7 @@ class UserResource extends Resource
                     'doctor' => 'Doctor',
                 ])
                 ->required()
+                ->hidden(fn(callable $get) => $get('role') === 'admin')
                 ->reactive()
                 ->afterStateUpdated(function (callable $set, $state) {
                     // Clear specialization when the role is not 'doctor'
@@ -118,7 +119,13 @@ class UserResource extends Resource
                 Forms\Components\DateTimePicker::make('email_verified_at')->hidden(),
                 Forms\Components\TextInput::make('password')
                     ->password()
-                    ->required(),
+                    ->revealable()
+                    ->required(fn(callable $get)=> $get('id') == null)
+                    ->placeholder(function(callable $get){
+                        if($get('id') !== null){
+                            return "Enter new password only if you want to reset password.";
+                        }
+                    }),
             ]);
     }
 
@@ -177,6 +184,16 @@ class UserResource extends Resource
                             // Halt the deletion process
                             $action->cancel();
                         }
+                    }
+                    if($record->role === 'admin'){
+                        Notification::make()
+                            ->title('Deletion Failed')
+                            ->body('Admin User Can\'t be deleted.')
+                            ->danger()
+                            ->send();
+
+                        // Halt the deletion process
+                        $action->cancel();
                     }
                 }),
             ])

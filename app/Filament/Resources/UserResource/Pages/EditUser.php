@@ -7,8 +7,10 @@ use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\User;
 use Filament\Actions;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 
 class EditUser extends EditRecord
 {
@@ -99,5 +101,29 @@ class EditUser extends EditRecord
         return $data;
     }
 
+    protected function mutateFormDataBeforeSave(array $data): array{
+
+        $user = $this->record;
+        $data['email'] = strtolower($data['email']);
+
+        if(isset($data['email']) && $data['email'] !== $user->email){
+            $existingEmail = $user->where('email', $data['email'])->exists();
+            if($existingEmail){
+                Notification::make()
+                    ->danger()
+                    ->title('Email already exists')
+                    ->send();
+
+                throw ValidationException::withMessages([
+                    'email' => 'Email already exists',
+                ]);
+            }
+        }
+
+        if($data['password'] == null){
+            unset($data['password']);
+        }
+        return $data;
+    }
 
 }

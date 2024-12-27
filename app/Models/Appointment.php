@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class Appointment extends Model
 {
@@ -15,6 +16,7 @@ class Appointment extends Model
         'start_time',
         'end_time',
         'day',
+        'slug',
         'appointment_reason'
     ];
 
@@ -44,7 +46,23 @@ class Appointment extends Model
                 $appointment->day = Carbon::parse($appointment->appointment_date)->format('l');
             }
         });
+
+        parent::boot();
+
+        static::creating(function($appointment){
+            $patientName = $appointment->patient->user->name;
+
+            $uniqueNo = uniqid();
+            $slug = Str::slug("{$uniqueNo}-{$patientName}");
+
+            $appointment->slug = $slug;
+            // $appointment->save();
+
+        });
     }
 
+    public function getRouteKeyName(){
+        return'slug';
+    }
 
 }

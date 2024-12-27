@@ -20,10 +20,16 @@
                 </div>
                 <div class="flex items-center space-x-6">
                     <!-- Home Link -->
-                    <a href="#" id="home" class="font-medium text-yellow-400 hover:text-yellow-400">Home</a>
+                    {{-- <a href="#" id="home" class="font-medium text-yellow-400 hover:text-yellow-400">Home</a>
+                    <a href="#about" id="about-link" class="font-medium text-white hover:text-yellow-400">About Us</a>
+                    <a href="#contact" id="contact-link" class="font-medium text-white hover:text-yellow-400">Contact</a>
+                    <a href="#doctors" id="doctors-link" class="font-medium text-white hover:text-yellow-400">Doctors</a> --}}
+
+                    <a href="#home" id="home-link" class="font-medium text-white hover:text-yellow-400">Home</a>
                     <a href="#about" id="about-link" class="font-medium text-white hover:text-yellow-400">About Us</a>
                     <a href="#contact" id="contact-link" class="font-medium text-white hover:text-yellow-400">Contact</a>
                     <a href="#doctors" id="doctors-link" class="font-medium text-white hover:text-yellow-400">Doctors</a>
+
 
                     @if (Auth::check())
                         <!-- If user is logged in, show Dashboard link -->
@@ -199,11 +205,50 @@
             <p>&copy; 2024 DocBook. All Rights Reserved.</p>
         </div>
     </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Smooth scrolling for links
+            const navLinks = document.querySelectorAll("nav a[href^='#']");
+            
+            navLinks.forEach(link => {
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute("href").substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    
+                    if (targetSection) {
+                        window.scrollTo({
+                            top: targetSection.offsetTop - 80, // Adjust for navbar height
+                            behavior: "smooth"
+                        });
+                    }
+                });
+            });
+    
+            // Highlight active link on scroll
+            const sections = document.querySelectorAll("section[id]");
+            const options = { threshold: 0.7 }; // Trigger when 70% of the section is visible
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const navLink = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => link.classList.remove("text-yellow-400"));
+                        navLink?.classList.add("text-yellow-400");
+                    }
+                });
+            }, options);
+    
+            sections.forEach(section => observer.observe(section));
+        });
+    </script>
+    
 </body>
 </html>
 {{-- <div class="flex space-x-4">
     <a href="{{ route('filament.admin.auth.login') }}"
-        class="px-6 py-3 bg-white text-blue-600 font-medium rounded-lg shadow-md hover:bg-blue-50">
+        class="px-6 py-3 font-medium text-blue-600 bg-white rounded-lg shadow-md hover:bg-blue-50">
         Login
     </a>
 </div> --}}

@@ -80,6 +80,7 @@ class UpcomingAppointments extends BaseWidget
                     ->sortable(),
 
             ])->searchable()
+
             // ->paginated([5, 10, 25, 50, 100, 'all'])
             ->defaultPaginationPageOption(5);
             // ->pagination(10); // Optional pagination, adjust as necessary

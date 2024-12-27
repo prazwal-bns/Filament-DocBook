@@ -34,12 +34,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\AppointmentResource\Pages;
 use Filament\Forms\Components\Select as ComponentsSelect;
+use Filament\Resources\Concerns\GloballySearchable;
 use App\Filament\Resources\AppointmentResource\RelationManagers;
 use App\Filament\Resources\AppointmentResource\RelationManagers\ReviewRelationManager;
 use App\Filament\Resources\AppointmentResource\RelationManagers\PaymentRelationManager;
 
 class AppointmentResource extends Resource
 {
+    // use GloballySearchable;
     protected static ?string $model = Appointment::class;
 
     protected static ?string $navigationGroup = 'Manage Appointments';
@@ -49,6 +51,11 @@ class AppointmentResource extends Resource
     protected static ?string $slug = 'appointments';
 
     protected static ?int $navigationSort = 1;
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->appointment_date;
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -158,6 +165,7 @@ class AppointmentResource extends Resource
 
                         DatePicker::make('appointment_date')
                             ->label('Appointment Date')
+                            ->native(false)
                             ->columnSpanFull()
                             ->reactive()
                             ->default($appointment->id ?? null)
