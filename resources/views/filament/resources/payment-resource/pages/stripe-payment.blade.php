@@ -45,6 +45,10 @@
             color: #3b82f6;
             font-weight: 600;
         }
+        .appointment-info .patient {
+            color: #00a632;
+            font-weight: 600;
+        }
 
         .appointment-info .time {
             font-style: italic;
@@ -63,11 +67,11 @@
             <div class="p-6 bg-white rounded-lg shadow-md">
                 <div class="appointment-info">
                     <h3>Appointment Details</h3>
-                    <p><span class="bold">Patient Name:</span> {{ $appointmentDetails->patient->user->name }}</p>
+                    <p><span class="bold">Patient Name:</span> <span class="patient"> {{ $appointmentDetails->patient->user->name }}</span></p>
                     <p><span class="bold">Appointment:</span> Appointment with <span class="doctor">{{ $appointmentDetails->doctor->user->name }}</span></p>
                     <p><span class="bold">Date:</span> {{ $appointmentDetails->appointment_date }}</p>
-                    <p><span class="bold">Appointment Time:</span> From <span class="time">{{ $appointmentDetails->start_time }}</span> to <span class="time">{{ $appointmentDetails->end_time }}</span></p>
-                    <p><span class="bold">Amount:</span>Rs. {{ $appointmentDetails->payment->amount }}</p>
+                    <p><span class="bold">Appointment Time:</span> From <span class="bold">{{ $appointmentDetails->start_time }}</span> to <span class="bold">{{ $appointmentDetails->end_time }}</span></p>
+                    <p><span class="bold">Amount: $</span> {{ number_format($appointmentDetails->payment->amount, 0) }}</p>
                 </div>
 
                 <form action="{{ route('stripe.post') }}" method="POST" id="payment-form">
@@ -89,7 +93,7 @@
                     <div class="flex justify-center">
                         <button type="submit"
                             class="w-full max-w-md px-6 py-3 font-semibold text-white rounded-lg shadow-md bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-4 focus:ring-primary-400 focus:ring-opacity-50">
-                            Submit Payment
+                            Pay $  {{ number_format($appointmentDetails->payment->amount, 0) }}
                         </button>
                     </div>
                 </form>

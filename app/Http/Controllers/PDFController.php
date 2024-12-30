@@ -54,9 +54,4 @@ class PDFController extends Controller
         ]);
     }
 
-
-    // return Response::make($pdf->download($filename), 200, [
-    //     'Content-Type' => 'application/pdf',
-    //     'Content-Disposition' => 'attachment; filename="yourfile.pdf"',
-    // ]);
 }

@@ -6,7 +6,9 @@ use App\Filament\Resources\UserResource;
 use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\Schedule;
+use App\Models\User;
 use Filament\Actions;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -42,6 +44,19 @@ class CreateUser extends CreateRecord
                 ]);
             }
         }
+
+        // $admin = User::where('role', 'admin')->first();
+        // Notification::make()
+        //     ->title('New User Registered !!')
+        //     ->icon('heroicon-o-user-group')
+        //     ->body("
+        //         A new User has been Registered. <br>
+        //         <a href='" . route('filament.admin.resources.users.index') . "' target='_blank'
+        //         style='color: #3b82f6; text-decoration: underline; transition: color 0.2s ease, text-decoration 0.2s ease;'>
+        //         Click here to more Details.
+        //         </a>
+        //     ")
+        //     ->sendToDatabase($admin);
 
         return $record;
     }

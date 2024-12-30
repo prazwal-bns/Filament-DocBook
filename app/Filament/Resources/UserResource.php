@@ -108,14 +108,15 @@ class UserResource extends Resource
                 //         ->default(fn($record) => $record->specialization_id)
                 //         ->visible(fn($get) => $get('role') == 'doctor'),
 
-                    Forms\Components\TextInput::make('address'),
-                    Forms\Components\TextInput::make('phone')
-                        ->label('Phone Number')
-                        ->numeric()
-                        ->minLength(10)
-                        ->maxLength(10)
-                        ->placeholder('Enter a valid phone number')
-                        ->rule('regex:/^(98|97|96|01|061|062|063|064|065|066|067|068|069)\d{6,8}$/'),
+                Forms\Components\TextInput::make('address'),
+                Forms\Components\TextInput::make('phone')
+                    ->label('Phone Number')
+                    ->numeric()
+                    ->minLength(10)
+                    ->maxLength(10)
+                    ->placeholder('Enter a valid phone number')
+                    ->rule('regex:/^(98|97|96|01|061|062|063|064|065|066|067|068|069)\d{6,8}$/'),
+
                 Forms\Components\DateTimePicker::make('email_verified_at')->hidden(),
                 Forms\Components\TextInput::make('password')
                     ->password()
@@ -128,7 +129,6 @@ class UserResource extends Resource
                     }),
             ]);
     }
-
 
 
 

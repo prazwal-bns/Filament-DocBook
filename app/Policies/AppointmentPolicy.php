@@ -83,6 +83,7 @@ class AppointmentPolicy
     public function update(User $user, Appointment $appointment): bool
     {
         return $this->isAdmin($user) || $this->isPatient($user, $appointment);
+        // return false;
     }
 
 

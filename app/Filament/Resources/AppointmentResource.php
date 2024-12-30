@@ -353,6 +353,6 @@ class AppointmentResource extends Resource
 
     public static function canEdit(Model $record): bool
     {
-        return $record->status == 'pending';
+        return $record->status == 'pending' && Auth::user()->role !== 'doctor';
     }
 }
