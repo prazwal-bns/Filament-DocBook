@@ -169,7 +169,7 @@ class AppointmentResource extends Resource
                             ->columnSpanFull()
                             ->reactive()
                             ->default($appointment->id ?? null)
-                            ->minDate(now()->toDateString())
+                            ->minDate(now()->addDay()->toDateString())
                             ->afterStateUpdated(function (callable $set, $state) {
                                 if ($state) {
                                     $dayName = Carbon::parse($state)->format('l');
