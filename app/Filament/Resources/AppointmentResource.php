@@ -162,7 +162,6 @@ class AppointmentResource extends Resource
                             }),
 
 
-
                         DatePicker::make('appointment_date')
                             ->label('Appointment Date')
                             ->native(false)

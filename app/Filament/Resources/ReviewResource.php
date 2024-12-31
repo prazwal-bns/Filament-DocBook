@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use App\Models\Review;
 use Filament\Actions\Action;
 use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
@@ -170,6 +171,14 @@ class ReviewResource extends Resource
                     ->required()
                     ->columnSpanFull(),
 
+                FileUpload::make('review_pdf')
+                    ->label('Review PDF')
+                    ->directory('reviews')
+                    ->acceptedFileTypes(['application/pdf'])
+                    ->maxSize(2048)
+                    ->nullable(),
+
+
             ]);
     }
 
@@ -208,6 +217,12 @@ class ReviewResource extends Resource
 
                 Tables\Columns\TextColumn::make('appointment.appointment_date')
                     ->label('Appointment Date'),
+
+                Tables\Columns\TextColumn::make('review_pdf')
+                    ->label('Review PDF')
+                    ->url(fn ($record) => $record->review_pdf ? asset('storage/' . $record->review_pdf) : null, true)
+                    ->default('No PDF Uploaded')
+                    ->openUrlInNewTab(),
 
                 Tables\Columns\TextColumn::make('review_msg')
                     ->label('Review Message'),
