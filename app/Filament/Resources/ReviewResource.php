@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use Illuminate\Support\Str;
 use App\Filament\Resources\ReviewResource\Pages;
 use App\Filament\Resources\ReviewResource\RelationManagers;
 use App\Models\Appointment;
@@ -176,7 +177,26 @@ class ReviewResource extends Resource
                     ->directory('reviews')
                     ->acceptedFileTypes(['application/pdf'])
                     ->maxSize(2048)
-                    ->nullable(),
+                    ->nullable()
+                    // ->getUploadedFileNameForStorageUsing(function ($file, callable $get) {
+                    //     $patientName = $get('appointment_id')->patient->name;
+                    //     $timestamp = now()->format('Y_m_d_His');
+                    //     return "{$patientName}_review_{$timestamp}.{$file->getClientOriginalExtension()}";
+                    // }),
+                    ->getUploadedFileNameForStorageUsing(function ($file, callable $get) {
+                        $appointmentId = $get('appointment_id');
+                        $appointment = \App\Models\Appointment::with('patient')->find($appointmentId);
+
+                        if ($appointment && $appointment->patient) {
+                            $patientName = Str::slug($appointment->patient->user->name, '_');
+                            $timestamp = now()->format('Y_m_d_His');
+                            return "{$patientName}_review_{$timestamp}.{$file->getClientOriginalExtension()}";
+                        }
+
+                        $timestamp = now()->format('Y_m_d_His');
+                        return "review_{$timestamp}.{$file->getClientOriginalExtension()}";
+                    }),
+
 
 
             ]);

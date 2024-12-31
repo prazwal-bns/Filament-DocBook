@@ -124,6 +124,7 @@ class AppointmentResource extends Resource
                         Forms\Components\Hidden::make('status_only_update')
                             ->default(false),
 
+
                         Select::make('doctor_id')
                             ->rules('exists:doctors,id')
                             ->columnSpanFull()

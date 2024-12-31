@@ -39,87 +39,12 @@ class CreateAppointment extends CreateRecord
             ->body("Your appointment with Dr. {$record->doctor->user->name} for {$record->appointment_date} has been successfully booked.");
     }
 
-    // public function handleRecordCreation(array $data): Model
-    // {
-    //     $record = parent::handleRecordCreation($data);
-
-    //     $startTime = strtotime($data['start_time']);
-    //     $endTime = strtotime($data['end_time']);
-    //     $durationInMinutes = ($endTime - $startTime) / 60;
-
-    //     // Determine the price (Rs. 1000 for 30 minutes, proportional for other durations)
-    //     $basePrice = 1000;
-    //     $price = ($durationInMinutes / 30) * $basePrice;
-
-    //     // Round the price to the nearest whole number
-    //     $roundedPrice = round($price);
-
-    //     // Create the payment record
-    //     Payment::create([
-    //         'appointment_id' => $record->id,
-    //         'payment_status' => 'unpaid',
-    //         'amount' => $roundedPrice,
-    //     ]);
-
-    //     // Notification::make()
-    //     //     ->title('Appointment Booked!')
-    //     //     ->body("Your appointment with Dr. {$record->doctor->user->name} for {$record->appointment_date} has been successfully booked.")
-    //     //     ->success()
-    //     //     ->sendToDatabase($record->patient); // Send notification to the patient
-
-    //     // event(new DatabaseNotificationsSent($record)); // Ensure the notification is sent in real-time
-
-    //     $this->sendNotifications($record);
-
-
-    //     return $record;
-    // }
-
-    // protected function sendNotifications(Appointment $record)
-    // {
-    //     $this->sendAdminNotification($record);
-    //     $this->sendPatientNotification($record);
-    //     $this->sendDoctorNotification($record);
-    // }
-
-    // protected function sendAdminNotification(Appointment $record)
-    // {
-    //     $admin = User::where('role', 'admin')->first();
-
-    //     Notification::make()
-    //         ->title('New Appointment Created')
-    //         ->body("An appointment has been created for Dr. {$record->doctor->user->name} on {$record->appointment_date}.")
-    //         ->success()
-    //         ->sendToDatabase($admin);
-
-    // }
-
-    // protected function sendPatientNotification(Appointment $record)
-    // {
-    //     Notification::make()
-    //         ->title('Appointment Booked!')
-    //         ->body("Your appointment with Dr. {$record->doctor->user->name} for {$record->appointment_date} has been successfully booked.")
-    //         ->success()
-    //         ->sendToDatabase($record->patient);
-
-    //     event(new DatabaseNotificationsSent($record->patient->user));
-    // }
-
-    // protected function sendDoctorNotification(Appointment $record)
-    // {
-    //     Notification::make()
-    //         ->title('New Appointment Scheduled')
-    //         ->body("You have a new appointment with {$record->patient->user->name} scheduled for {$record->appointment_date}.")
-    //         ->success()
-    //         ->sendToDatabase($record->doctor->user);
-
-    //     event(new DatabaseNotificationsSent($record->doctor->user));
-    // }
-
 
     public function handleRecordCreation(array $data): Model
     {
         $record = parent::handleRecordCreation($data);
+
+        // dd($record);
 
         $startTime = strtotime($data['start_time']);
         $endTime = strtotime($data['end_time']);
@@ -191,7 +116,7 @@ class CreateAppointment extends CreateRecord
             ->icon('heroicon-o-calendar')
             ->body("
                 You have a new appointment with {$record->patient->user->name} scheduled for {$record->appointment_date}. <br>
-                <a href='" . route('filament.admin.resources.appointments.view', $record) . "' target='_blank'
+                <a class='bg-primary' href='" . route('filament.admin.resources.appointments.view', $record) . "' target='_blank'
                 style='color: #3b82f6; text-decoration: underline; transition: color 0.2s ease, text-decoration 0.2s ease;'>
                 Click here to view the appointment Details.
                 </a>
