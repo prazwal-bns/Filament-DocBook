@@ -17,6 +17,7 @@ use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -225,8 +226,8 @@ class ReviewResource extends Resource
                         $record->appointment->patient->user->name . ' with ' .
                         $record->appointment->doctor->user->name . ' on ' .
                         $record->appointment->appointment_date)
-                    ->sortable(),
-
+                    ->sortable()
+                    ->limit(30),
 
 
                 Tables\Columns\TextColumn::make('appointment.doctor.user.name')
@@ -242,10 +243,15 @@ class ReviewResource extends Resource
                     ->label('Review PDF')
                     ->url(fn ($record) => $record->review_pdf ? asset('storage/' . $record->review_pdf) : null, true)
                     ->default('No PDF Uploaded')
+                    ->limit(30)
+                    ->openUrlInNewTab()
+                    ->extraAttributes(['style' => 'white-space: normal; word-wrap: break-word;'])
                     ->openUrlInNewTab(),
 
                 Tables\Columns\TextColumn::make('review_msg')
-                    ->label('Review Message'),
+                    ->label('Review Message')
+                    ->limit(10),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created At')
                     ->dateTime()

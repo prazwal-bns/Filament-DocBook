@@ -50,12 +50,23 @@ class AppointmentResource extends Resource
 
     protected static ?string $slug = 'appointments';
 
+    protected static ?string $recordTitleAttribute = 'Appointment Details';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['patient.user.name','doctor.user.name'];
+    }
+
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Patient Name' => $record->patient->user->name,
+            'Doctor Name' => $record->doctor->user->name,
+        ];
+    }
     protected static ?int $navigationSort = 1;
 
-    public static function getGlobalSearchResultTitle(Model $record): string
-    {
-        return $record->appointment_date;
-    }
 
     public static function getNavigationBadge(): ?string
     {

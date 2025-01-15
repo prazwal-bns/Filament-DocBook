@@ -22,6 +22,7 @@ class LineChart extends ChartWidget
     {
         $user = Auth::user();
 
+
         if ($user->role === 'admin') {
             return 'Users Registered This Week';
         }

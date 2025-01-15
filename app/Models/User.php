@@ -9,8 +9,9 @@ use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Support\Facades\Hash;
+use Filament\Panel;
 
-class User extends Authenticatable implements HasAvatar
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     use HasFactory, Notifiable;
 
@@ -78,29 +79,10 @@ class User extends Authenticatable implements HasAvatar
         return $this->hasOne(Doctor::class);
     }
 
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return in_array($this->role, ['admin', 'doctor','patient']); 
+    }
 
-
-    // protected static function booted(): void
-    // {
-    //     static::creating(function ($user) {
-    //         if (empty($user->role)) {
-    //             $user->role = 'patient';
-    //         }
-
-    //         if (!empty($user->password)) {
-    //             $user->password = Hash::make($user->password);
-    //         }
-    //     });
-
-    //     static::created(function ($user) {
-    //         if ($user->role === 'patient') {
-    //             Patient::create([
-    //                 'user_id' => $user->id,
-    //                 'gender' => $user->gender ?? null,
-    //                 'dob' => $user->dob ?? null,
-    //             ]);
-    //         }
-    //     });
-    // }
 
 }
